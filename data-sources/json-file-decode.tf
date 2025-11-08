@@ -1,16 +1,19 @@
+# Test: JSON File Decode
+# Prefix: jfd_ (json_file_decode)
+
 # New Terraform configuration file
 locals {
-  json_data = jsondecode(file("${path.module}/data.json"))
+  jfd_json_data = jsondecode(file("${path.module}/data.json"))
 }
 
-output "environment" {
-  value = local.json_data.environment
+output "jfd_environment" {
+  value = local.jfd_json_data.environment
 }
 
-output "region" {
-  value = local.json_data.region
+output "jfd_region" {
+  value = local.jfd_json_data.region
 }
 
-output "tags" {
-  value = local.json_data.tags
+output "jfd_tags" {
+  value = local.jfd_json_data.tags
 }

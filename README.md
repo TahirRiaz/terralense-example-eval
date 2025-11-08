@@ -128,15 +128,53 @@ Examples:
 - `complex-type-constraints-validation.tf` - Tests complex variable types with validation
 - `aws-vpc-full-networking-stack.tf` - Tests a complete VPC configuration
 
+## Unique Naming Convention
+
+**Important:** All test files use a **unique prefix naming convention** to prevent naming conflicts when Terralense evaluates files together.
+
+Each test file has a unique 2-4 letter prefix that is applied to ALL objects within that file:
+- Variables: `variable "prefix_name"`
+- Locals: `local.prefix_name`
+- Resources: `resource "type" "prefix_name"`
+- Data Sources: `data "type" "prefix_name"`
+- Outputs: `output "prefix_name"`
+
+### Example
+
+File `loops/nested-for-loops-multi-region.tf` uses prefix `nfl_`:
+```hcl
+# Test: Nested For Loops - Multi-Region
+# Prefix: nfl_ (nested_for_loops)
+
+variable "nfl_environments" { ... }
+locals { nfl_all_combinations = { ... } }
+resource "null_resource" "nfl_test_instances" { ... }
+```
+
+### Benefits
+- ✅ No naming conflicts across test files
+- ✅ All 27 tests can be evaluated together
+- ✅ Clear identification of which test each object belongs to
+- ✅ Terralense can correctly analyze all files simultaneously
+
+### Documentation
+- See [UNIQUE-NAMING.md](./UNIQUE-NAMING.md) for detailed information
+- See [REFACTORING-PREFIXES.md](./REFACTORING-PREFIXES.md) for complete prefix mapping
+
 ## Contributing
 
 To add new test cases:
 
 1. Identify the primary feature being tested
-2. Place the test file in the appropriate category folder
-3. Use a descriptive file name following the naming convention
-4. Add test case documentation to the category README
-5. Ensure the test case is independent and self-contained
+2. Choose a unique 2-4 letter prefix (check [REFACTORING-PREFIXES.md](./REFACTORING-PREFIXES.md) to avoid duplicates)
+3. Place the test file in the appropriate category folder
+4. Use a descriptive file name following the naming convention
+5. Add header comment with test name and prefix (see [UNIQUE-NAMING.md](./UNIQUE-NAMING.md))
+6. Prefix ALL objects in your file (variables, locals, resources, outputs, data sources)
+7. Update all internal references to use prefixed names
+8. Add test case documentation to the category README
+9. Update [REFACTORING-PREFIXES.md](./REFACTORING-PREFIXES.md) with your new prefix mapping
+10. Ensure the test case is independent and self-contained
 
 ## Test Coverage
 

@@ -1,3 +1,6 @@
+# Test: Try Lookup Realm Selection
+# Prefix: tlr_ (try_lookup_realm)
+
 terraform {
   required_providers {
     aws = {
@@ -7,7 +10,7 @@ terraform {
   }
 }
 
-variable "secret_expiry_alert_config" {
+variable "tlr_secret_expiry_alert_config" {
   description = "test"
 
   type = list(object({
@@ -39,7 +42,7 @@ variable "secret_expiry_alert_config" {
   ]
 }
 
-variable "secret_expiry_alert" {
+variable "tlr_secret_expiry_alert" {
   description = "Configuration object controlling Key Vault secret-expiry monitoring and alerting."
 
   type = object({
@@ -58,26 +61,26 @@ variable "secret_expiry_alert" {
   default = null
 
   validation {
-    condition     = var.secret_expiry_alert == null || var.secret_expiry_alert.realm == null ? true : var.secret_expiry_alert.log_analytics_workspace_id != null
+    condition     = var.tlr_secret_expiry_alert == null || var.tlr_secret_expiry_alert.realm == null ? true : var.tlr_secret_expiry_alert.log_analytics_workspace_id != null
     error_message = "When a valid realm is specified, log_analytics_workspace_id must not be null."
   }
 }
 
 
 locals {
-  selected_realm = var.secret_expiry_alert != null ? var.secret_expiry_alert.realm : null
+  tlr_selected_realm = var.tlr_secret_expiry_alert != null ? var.tlr_secret_expiry_alert.realm : null
 
-  selected_realm_config = local.selected_realm != null ? (
+  tlr_selected_realm_config = local.tlr_selected_realm != null ? (
     try(
-      [for cfg in var.secret_expiry_alert_config : cfg if cfg.realm == local.selected_realm][0],
+      [for cfg in var.tlr_secret_expiry_alert_config : cfg if cfg.realm == local.tlr_selected_realm][0],
       null
     )
   ) : null
 
-  monitoring_enabled = local.selected_realm_config != null
+  tlr_monitoring_enabled = local.tlr_selected_realm_config != null
 }
 
-variable "vpc_configs" {
+variable "tlr_vpc_configs" {
   type = map(object({
     vpc_id = string
     subnets = list(object({
@@ -103,8 +106,8 @@ variable "vpc_configs" {
 }
 
 locals {
-  subnet_configs = {
-    for vpc_key, vpc in var.vpc_configs : vpc_key => [
+  tlr_subnet_configs = {
+    for vpc_key, vpc in var.tlr_vpc_configs : vpc_key => [
       for subnet in vpc.subnets : {
         vpc_id     = vpc.vpc_id
         cidr_block = subnet.cidr_block
@@ -114,10 +117,10 @@ locals {
   }
 }
 
-resource "aws_subnet" "main" {
+resource "aws_subnet" "tlr_main" {
   for_each = {
     for subnet in flatten([
-      for vpc_key, subnets in var.subnet_configs : [
+      for vpc_key, subnets in local.tlr_subnet_configs : [
         for subnet in subnets : {
           key    = "${vpc_key}-${subnet.zone}"
           config = subnet

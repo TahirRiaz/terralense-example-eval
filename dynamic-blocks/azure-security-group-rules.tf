@@ -1,9 +1,12 @@
+# Test: Azure Security Group Rules
+# Prefix: asg_ (azure_security_group)
+
 terraform {
   required_version = ">= 0.12"
 }
 
 locals {
-  security_rules = [
+  asg_security_rules = [
     {
       name        = "allow_http"
       priority    = 100
@@ -25,13 +28,13 @@ locals {
   ]
 }
 
-resource "azurerm_network_security_group" "example" {
+resource "azurerm_network_security_group" "asg_example" {
   name                = "example-security-group"
   location            = "eastus"
   resource_group_name = "example-resources"
 
   dynamic "security_rule" {
-    for_each = local.security_rules
+    for_each = local.asg_security_rules
     content {
       name                       = security_rule.value.name
       priority                   = security_rule.value.priority

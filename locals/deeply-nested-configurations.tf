@@ -1,14 +1,17 @@
-variable "environment" {
+# Test: Deeply Nested Configurations
+# Prefix: dnc_ (deeply_nested_configurations)
+
+variable "dnc_environment" {
   type    = string
   default = "dev"
 }
 
-variable "region" {
+variable "dnc_region" {
   type    = string
   default = "us-west-2"
 }
 
-variable "app_config" {
+variable "dnc_app_config" {
   type = object({
     name       = string
     port       = number
@@ -21,7 +24,7 @@ variable "app_config" {
   }
 }
 
-variable "instance_sizes" {
+variable "dnc_instance_sizes" {
   type = map(string)
   default = {
     small  = "t3.micro"
@@ -35,48 +38,48 @@ variable "instance_sizes" {
 
 locals {
   # Simple string concatenation
-  app_name = "${var.app_config.name}-${var.environment}"
+  dnc_app_name = "${var.dnc_app_config.name}-${var.dnc_environment}"
 
   # Basic map lookup with default
-  instance_type = lookup(var.instance_sizes, var.environment == "prod" ? "large" : "small", "t3.micro")
+  dnc_instance_type = lookup(var.dnc_instance_sizes, var.dnc_environment == "prod" ? "large" : "small", "t3.micro")
 
   # Simple conditional
-  is_production = var.environment == "prod"
+  dnc_is_production = var.dnc_environment == "prod"
 
   # Basic map transformation
-  tags = {
-    Name        = local.app_name
-    Environment = var.environment
-    Region      = var.region
+  dnc_tags = {
+    Name        = local.dnc_app_name
+    Environment = var.dnc_environment
+    Region      = var.dnc_region
     Managed_By  = "terraform"
   }
 
   # Simple list
-  allowed_ports = concat(
-    [var.app_config.port],
-    var.app_config.enable_ssl ? [443] : []
+  dnc_allowed_ports = concat(
+    [var.dnc_app_config.port],
+    var.dnc_app_config.enable_ssl ? [443] : []
   )
 
   # For expression to transform instance sizes into a specific format
-  instance_configs = {
-    for size, type in var.instance_sizes :
+  dnc_instance_configs = {
+    for size, type in var.dnc_instance_sizes :
     size => {
-      name          = "${local.app_name}-${size}"
+      name          = "${local.dnc_app_name}-${size}"
       instance_type = type
       priority      = size == "small" ? "low" : size == "medium" ? "medium" : "high"
     }
   }
 
-  env_count = 2
+  dnc_env_count = 2
 
-  env_names = [
-    for i in range(local.env_count) :
-    "${local.app_name}-${var.environment}-${format("%02d", i + 1)}"
+  dnc_env_names = [
+    for i in range(local.dnc_env_count) :
+    "${local.dnc_app_name}-${var.dnc_environment}-${format("%02d", i + 1)}"
   ]
 
 
   # Advanced storage configuration with nested maps and dynamic settings
-  storage_config = {
+  dnc_storage_config = {
     for env in ["dev", "staging", "prod"] : env => {
       tier          = env == "prod" ? "Standard" : "Premium"
       replication   = env == "prod" ? "GRS" : "LRS"
@@ -97,34 +100,34 @@ locals {
   }
 
   # Filter VM sizes based on criteria and create a list
-  filtered_sizes = [
-    for size in data.azurerm_virtual_machine_sizes.available.sizes : size
+  dnc_filtered_sizes = [
+    for size in data.azurerm_virtual_machine_sizes.dnc_available.sizes : size
     if size.number_of_cores >= 2 &&
     size.memory_in_mb >= 4096 &&
     !startswith(size.name, "Standard_B")
   ]
 
   # Take only first 3 sizes that match our criteria
-  selected_sizes = slice(local.filtered_sizes, 0, 3)
+  dnc_selected_sizes = slice(local.dnc_filtered_sizes, 0, 3)
 
 }
 
-data "azurerm_virtual_machine_sizes" "available" {
-  location = var.region
+data "azurerm_virtual_machine_sizes" "dnc_available" {
+  location = var.dnc_region
   sizes    = [1, 2, 3]
 }
 
-data "azurerm_key_vault" "existing" {
-  name                = "existing-key-vault-${var.environment}"
-  resource_group_name = "security-${var.environment}"
+data "azurerm_key_vault" "dnc_existing" {
+  name                = "existing-key-vault-${var.dnc_environment}"
+  resource_group_name = "security-${var.dnc_environment}"
   id                  = "simulated value"
   timeouts {
     read = "30m"
   }
 }
 
-data "azurerm_key_vault_secrets" "app_secrets" {
-  key_vault_id = data.azurerm_key_vault.existing.id
+data "azurerm_key_vault_secrets" "dnc_app_secrets" {
+  key_vault_id = data.azurerm_key_vault.dnc_existing.id
 
   filter {
     name_prefix            = "APP_"
@@ -134,35 +137,35 @@ data "azurerm_key_vault_secrets" "app_secrets" {
 }
 
 
-resource "azurerm_resource_group" "nested_instances" {
-  for_each = var.instance_sizes
-  name     = "${local.app_name}-${each.key}"
-  location = var.region
+resource "azurerm_resource_group" "dnc_nested_instances" {
+  for_each = var.dnc_instance_sizes
+  name     = "${local.dnc_app_name}-${each.key}"
+  location = var.dnc_region
 
   tags = {
     Instance_Size = each.value
     Instance_Tier = each.key
   }
 
-  depends_on = [azurerm_resource_group.main]
+  depends_on = [azurerm_resource_group.dnc_main]
 }
 
 
 
-resource "azurerm_resource_group" "main" {
-  name     = local.app_name
-  location = var.region
-  tags     = local.tags
+resource "azurerm_resource_group" "dnc_main" {
+  name     = local.dnc_app_name
+  location = var.dnc_region
+  tags     = local.dnc_tags
 }
 
 
-resource "azurerm_container_group" "app_instances" {
-  count               = local.env_count
-  name                = local.env_names[count.index]
-  location            = var.region
-  resource_group_name = azurerm_resource_group.main.name
+resource "azurerm_container_group" "dnc_app_instances" {
+  count               = local.dnc_env_count
+  name                = local.dnc_env_names[count.index]
+  location            = var.dnc_region
+  resource_group_name = azurerm_resource_group.dnc_main.name
   ip_address_type     = "Public"
-  dns_name_label      = local.env_names[count.index]
+  dns_name_label      = local.dnc_env_names[count.index]
   os_type             = "Linux"
 
   container {
@@ -172,47 +175,47 @@ resource "azurerm_container_group" "app_instances" {
     memory = "1.5"
 
     ports {
-      port     = var.app_config.port
+      port     = var.dnc_app_config.port
       protocol = "TCP"
     }
   }
 
-  tags = merge(local.tags, {
+  tags = merge(local.dnc_tags, {
     Instance_Number = count.index + 1
-    Instance_Name   = local.env_names[count.index]
+    Instance_Name   = local.dnc_env_names[count.index]
     # For expression to list all sibling instances
     Siblings = jsonencode([
-      for name in local.env_names :
-      name if name != local.env_names[count.index]
+      for name in local.dnc_env_names :
+      name if name != local.dnc_env_names[count.index]
     ])
   })
 }
 
 
 
-resource "azurerm_storage_account" "advanced" {
-  name                     = "${replace(lower(local.app_name), "-", "")}${var.environment}sa"
-  resource_group_name      = azurerm_resource_group.main.name
-  location                 = var.region
-  account_tier             = lookup(local.storage_config[var.environment], "tier", "Standard")
-  account_replication_type = lookup(local.storage_config[var.environment], "replication", "LRS")
-  min_tls_version          = lookup(local.storage_config[var.environment], "min_tls", "TLS1_2")
+resource "azurerm_storage_account" "dnc_advanced" {
+  name                     = "${replace(lower(local.dnc_app_name), "-", "")}${var.dnc_environment}sa"
+  resource_group_name      = azurerm_resource_group.dnc_main.name
+  location                 = var.dnc_region
+  account_tier             = lookup(local.dnc_storage_config[var.dnc_environment], "tier", "Standard")
+  account_replication_type = lookup(local.dnc_storage_config[var.dnc_environment], "replication", "LRS")
+  min_tls_version          = lookup(local.dnc_storage_config[var.dnc_environment], "min_tls", "TLS1_2")
 
   network_rules {
     default_action = "Deny"
-    ip_rules       = local.storage_config[var.environment].network_rules
+    ip_rules       = local.dnc_storage_config[var.dnc_environment].network_rules
     bypass         = ["Metrics", "Logging"]
   }
 
   # Dynamic block for containers
   dynamic "blob_properties" {
-    for_each = local.storage_config[var.environment].containers
+    for_each = local.dnc_storage_config[var.dnc_environment].containers
     content {
       container_delete_retention_policy {
-        days = var.environment == "prod" ? 14 : 7
+        days = var.dnc_environment == "prod" ? 14 : 7
       }
       delete_retention_policy {
-        days = var.environment == "prod" ? 30 : 14
+        days = var.dnc_environment == "prod" ? 30 : 14
       }
     }
   }
@@ -224,8 +227,8 @@ resource "azurerm_storage_account" "advanced" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days = local.storage_config[var.environment].lifecycle_rules.logs.days_to_cool_tier
-        delete_after_days       = local.storage_config[var.environment].lifecycle_rules.logs.days_to_delete
+        tier_to_cool_after_days = local.dnc_storage_config[var.dnc_environment].lifecycle_rules.logs.days_to_cool_tier
+        delete_after_days       = local.dnc_storage_config[var.dnc_environment].lifecycle_rules.logs.days_to_delete
       }
     }
   }
@@ -237,17 +240,17 @@ resource "azurerm_storage_account" "advanced" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days = local.storage_config[var.environment].lifecycle_rules.data.days_to_cool_tier
-        delete_after_days       = local.storage_config[var.environment].lifecycle_rules.data.days_to_delete
+        tier_to_cool_after_days = local.dnc_storage_config[var.dnc_environment].lifecycle_rules.data.days_to_cool_tier
+        delete_after_days       = local.dnc_storage_config[var.dnc_environment].lifecycle_rules.data.days_to_delete
       }
     }
   }
 
-  tags = merge(local.tags, {
-    StorageType    = local.storage_config[var.environment].tier
-    Replication    = local.storage_config[var.environment].replication
-    ContainerCount = length(local.storage_config[var.environment].containers)
-    SecurityLevel  = var.environment == "prod" ? "High" : "Standard"
+  tags = merge(local.dnc_tags, {
+    StorageType    = local.dnc_storage_config[var.dnc_environment].tier
+    Replication    = local.dnc_storage_config[var.dnc_environment].replication
+    ContainerCount = length(local.dnc_storage_config[var.dnc_environment].containers)
+    SecurityLevel  = var.dnc_environment == "prod" ? "High" : "Standard"
   })
 
 }

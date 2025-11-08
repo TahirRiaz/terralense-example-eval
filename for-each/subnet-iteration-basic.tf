@@ -1,10 +1,13 @@
-variable "vpc_id" {
+# Test: Subnet Iteration Basic
+# Prefix: sib_ (subnet_iteration_basic)
+
+variable "sib_vpc_id" {
   type    = string
   default = "vpc-12345"
 }
 
 locals {
-  subnet_configs = {
+  sib_subnet_configs = {
     "subnet-1" = {
       cidr_block = "10.0.1.0/24"
       zone       = "us-east-1a"
@@ -16,10 +19,10 @@ locals {
   }
 }
 
-resource "aws_subnet" "main" {
-  for_each = local.subnet_configs
+resource "aws_subnet" "sib_main" {
+  for_each = local.sib_subnet_configs
 
-  vpc_id            = var.vpc_id
+  vpc_id            = var.sib_vpc_id
   cidr_block        = each.value.cidr_block
   availability_zone = each.value.zone
 
@@ -28,9 +31,9 @@ resource "aws_subnet" "main" {
   }
 }
 
-resource "azurerm_resource_group" "default2" {
+resource "azurerm_resource_group" "sib_default2" {
   name     = "local.prefix2"
   location = "var.location2"
 
-  tags = { test = aws_subnet.main["subnet-1"].vpc_id }
+  tags = { test = aws_subnet.sib_main["subnet-1"].vpc_id }
 }

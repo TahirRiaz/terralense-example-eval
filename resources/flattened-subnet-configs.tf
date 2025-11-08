@@ -1,3 +1,6 @@
+# Test: Flattened Subnet Configs
+# Prefix: fsc_ (flattened_subnet_configs)
+
 terraform {
   required_providers {
     aws = {
@@ -7,7 +10,7 @@ terraform {
   }
 }
 
-variable "vpc_configs" {
+variable "fsc_vpc_configs" {
   type = map(object({
     vpc_id = string
     subnets = list(object({
@@ -33,8 +36,8 @@ variable "vpc_configs" {
 }
 
 locals {
-  subnet_configs = {
-    for vpc_key, vpc in var.vpc_configs : vpc_key => [
+  fsc_subnet_configs = {
+    for vpc_key, vpc in var.fsc_vpc_configs : vpc_key => [
       for subnet in vpc.subnets : {
         vpc_id     = vpc.vpc_id
         cidr_block = subnet.cidr_block
@@ -44,11 +47,11 @@ locals {
   }
 }
 
-resource "aws_subnet" "main" {
+resource "aws_subnet" "fsc_main" {
 
   for_each = {
     for subnet in flatten([
-      for vpc_key, subnets in local.subnet_configs : [
+      for vpc_key, subnets in local.fsc_subnet_configs : [
         for subnet in subnets : {
           key    = "${vpc_key}-${subnet.zone}"
           config = subnet

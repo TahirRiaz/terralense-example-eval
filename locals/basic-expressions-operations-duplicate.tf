@@ -1,21 +1,24 @@
+# Test: Basic Expressions Operations Duplicate
+# Prefix: beod_ (basic_expressions_operations_dup)
+
 # Test Case 1: Basic Variable References
-variable "environment" {
+variable "beod_environment" {
   type    = string
   default = "development"
 }
 
-variable "instance_count" {
+variable "beod_instance_count" {
   type    = number
   default = 2
 }
 
 # Test Case 2: List and Map Variables
-variable "availability_zones" {
+variable "beod_availability_zones" {
   type    = list(string)
   default = ["us-west-1a", "us-west-1b"]
 }
 
-variable "tags" {
+variable "beod_tags" {
   type = map(string)
   default = {
     Environment = "dev"
@@ -24,7 +27,7 @@ variable "tags" {
 }
 
 # Test Case 3: Complex Type Constraints
-variable "server_config" {
+variable "beod_server_config" {
   type = object({
     instance_type = string
     ami_id        = string
@@ -44,38 +47,38 @@ variable "server_config" {
 # Test Case 4: Expression Evaluation
 locals {
   # String interpolation
-  server_name = "server-${var.environment}"
+  beod_server_name = "server-${var.beod_environment}"
 
   # Numeric operations
-  total_storage = var.instance_count * var.server_config.volume_size
+  beod_total_storage = var.beod_instance_count * var.beod_server_config.volume_size
 
   # Conditional expression
-  environment_tag = var.environment == "production" ? "prod" : "non-prod"
+  beod_environment_tag = var.beod_environment == "production" ? "prod" : "non-prod"
 
   # List operations
-  first_az = var.availability_zones[0]
-  az_count = length(var.availability_zones)
+  beod_first_az = var.beod_availability_zones[0]
+  beod_az_count = length(var.beod_availability_zones)
 
   # Map operations
-  all_tags = merge(var.tags, {
-    Name = local.server_name
+  beod_all_tags = merge(var.beod_tags, {
+    Name = local.beod_server_name
   })
 
   # Complex expressions
-  instance_tags = {
-    for idx in range(var.instance_count) :
-    "instance-${idx}" => merge(local.all_tags, {
+  beod_instance_tags = {
+    for idx in range(var.beod_instance_count) :
+    "instance-${idx}" => merge(local.beod_all_tags, {
       InstanceNumber = tostring(idx + 1)
     })
   }
 }
 
 # Test Case 5: Output Values
-output "server_configuration" {
+output "beod_server_configuration" {
   value = {
-    name          = local.server_name
-    total_storage = local.total_storage
-    environment   = local.environment_tag
-    instances     = local.instance_tags
+    name          = local.beod_server_name
+    total_storage = local.beod_total_storage
+    environment   = local.beod_environment_tag
+    instances     = local.beod_instance_tags
   }
 }

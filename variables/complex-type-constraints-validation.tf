@@ -1,48 +1,51 @@
+# Test: Complex Type Constraints Validation
+# Prefix: ctc_ (complex_type_constraints)
+
 # # Basic variable types
-variable "environment" {
+variable "ctc_environment" {
   type    = string
   default = "dev"
 
   validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
+    condition     = contains(["dev", "staging", "prod"], var.ctc_environment)
     error_message = "Environment must be one of: dev, staging, or prod."
   }
 }
 
-variable "db_username" {
+variable "ctc_db_username" {
   type        = string
   description = "Database username for authentication"
   default     = "dbadmin"
 
   validation {
-    condition     = length(var.db_username) >= 3 && length(var.db_username) <= 16
+    condition     = length(var.ctc_db_username) >= 3 && length(var.ctc_db_username) <= 16
     error_message = "Database username must be between 3 and 16 characters."
   }
 
   validation {
-    condition     = can(regex("^[a-zA-Z]", var.db_username))
+    condition     = can(regex("^[a-zA-Z]", var.ctc_db_username))
     error_message = "Database username must start with a letter."
   }
 
   validation {
-    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_]*$", var.db_username))
+    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9_]*$", var.ctc_db_username))
     error_message = "Database username can only contain letters, numbers, and underscores after the first character."
   }
 }
 
-variable "region" {
+variable "ctc_region" {
   type    = string
   default = "us-west-2"
 }
 
-variable "instance_count" {
+variable "ctc_instance_count" {
   type    = number
   default = 5
 }
 
 
 # Complex map with nested structures
-variable "service_config" {
+variable "ctc_service_config" {
   type = map(object({
     name = string
     config = object({
@@ -95,7 +98,7 @@ variable "service_config" {
 }
 
 # List with complex type definitions
-variable "service_definitions" {
+variable "ctc_service_definitions" {
   type = list(object({
     id         = string
     name       = string
@@ -131,7 +134,7 @@ variable "service_definitions" {
 }
 
 # Complex type definitions with nested objects
-variable "cluster_config" {
+variable "ctc_cluster_config" {
   type = object({
     instance_types = list(object({
       name = string

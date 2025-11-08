@@ -1,10 +1,13 @@
-variable "vpc_id" {
+# Test: Nested For in Resource Attribute
+# Prefix: nfr_ (nested_for_resource)
+
+variable "nfr_vpc_id" {
   type    = string
   default = "vpc-12345"
 }
 
 locals {
-  subnet_configs = {
+  nfr_subnet_configs = {
     "subnet-1" = {
       cidr_block = "10.0.1.0/24"
       zone       = "us-east-1a"
@@ -16,17 +19,17 @@ locals {
   }
 }
 
-resource "aws_subnet" "main" {
+resource "aws_subnet" "nfr_main" {
   for = {
-    for name, config in local.subnet_configs :
+    for name, config in local.nfr_subnet_configs :
     name => {
       for k, v in config :
       k => v
     }
   }
-  vpc_id = var.vpc_id
+  vpc_id = var.nfr_vpc_id
   tags = {
-    for k, v in local.subnet_configs :
+    for k, v in local.nfr_subnet_configs :
     k => "${k}"
   }
 }

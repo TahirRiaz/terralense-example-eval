@@ -1,14 +1,17 @@
-variable "environment" {
+# Test: Advanced Storage Filtering
+# Prefix: asf_ (advanced_storage_filtering)
+
+variable "asf_environment" {
   type    = string
   default = "dev"
 }
 
-variable "region" {
+variable "asf_region" {
   type    = string
   default = "us-west-2"
 }
 
-variable "app_config" {
+variable "asf_app_config" {
   type = object({
     name       = string
     port       = number
@@ -21,7 +24,7 @@ variable "app_config" {
   }
 }
 
-variable "instance_sizes" {
+variable "asf_instance_sizes" {
   type = map(string)
   default = {
     small  = "t3.micro"
@@ -34,47 +37,47 @@ variable "instance_sizes" {
 
 locals {
   # Simple string concatenation
-  app_name = "${var.app_config.name}-${var.environment}"
+  asf_app_name = "${var.asf_app_config.name}-${var.asf_environment}"
 
   # Basic map lookup with default
-  instance_type = lookup(var.instance_sizes, var.environment == "prod" ? "large" : "small", "t3.micro")
+  asf_instance_type = lookup(var.asf_instance_sizes, var.asf_environment == "prod" ? "large" : "small", "t3.micro")
 
   # Simple conditional
-  is_production = var.environment == "prod"
+  asf_is_production = var.asf_environment == "prod"
 
   # Basic map transformation
-  tags = {
-    Name        = local.app_name
-    Environment = var.environment
-    Region      = var.region
+  asf_tags = {
+    Name        = local.asf_app_name
+    Environment = var.asf_environment
+    Region      = var.asf_region
     Managed_By  = "terraform"
   }
 
   # Simple list
-  allowed_ports = concat(
-    [var.app_config.port],
-    var.app_config.enable_ssl ? [443] : []
+  asf_allowed_ports = concat(
+    [var.asf_app_config.port],
+    var.asf_app_config.enable_ssl ? [443] : []
   )
 
   # For expression to transform instance sizes into a specific format
-  instance_configs = {
-    for size, type in var.instance_sizes :
+  asf_instance_configs = {
+    for size, type in var.asf_instance_sizes :
     size => {
-      name          = "${local.app_name}-${size}"
+      name          = "${local.asf_app_name}-${size}"
       instance_type = type
       priority      = size == "small" ? "low" : size == "medium" ? "medium" : "high"
     }
   }
 
-  env_count = 2
+  asf_env_count = 2
 
-  env_names = [
-    for i in range(local.env_count) :
-    "${local.app_name}-${var.environment}-${format("%02d", i + 1)}"
+  asf_env_names = [
+    for i in range(local.asf_env_count) :
+    "${local.asf_app_name}-${var.asf_environment}-${format("%02d", i + 1)}"
   ]
 
   # Advanced storage configuration with nested maps and dynamic settings
-  storage_config = {
+  asf_storage_config = {
     for env in ["dev", "staging", "prod"] : env => {
       tier          = env == "prod" ? "Standard" : "Premium"
       replication   = env == "prod" ? "GRS" : "LRS"
@@ -95,52 +98,52 @@ locals {
   }
 
   # Filter VM sizes based on criteria and create a list
-  filtered_sizes = [
-    for size in data.azurerm_virtual_machine_sizes.available.sizes : size
+  asf_filtered_sizes = [
+    for size in data.azurerm_virtual_machine_sizes.asf_available.sizes : size
     if size.number_of_cores >= 2 &&
     size.memory_in_mb >= 4096 &&
     !startswith(size.name, "Standard_B")
   ]
 
   # Take only first 3 sizes that match our criteria
-  selected_sizes = slice(local.filtered_sizes, 0, 3)
+  asf_selected_sizes = slice(local.asf_filtered_sizes, 0, 3)
 
 }
 
 # Count Example - Creates multiple instances based on a count
-resource "aws_instance" "web" {
-  count = local.env_count
+resource "aws_instance" "asf_web" {
+  count = local.asf_env_count
 
   ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = local.instance_type
+  instance_type = local.asf_instance_type
 
-  tags = merge(local.tags, {
-    Name = local.env_names[count.index]
+  tags = merge(local.asf_tags, {
+    Name = local.asf_env_names[count.index]
   })
 }
 
 # For Each Example - Creates resources based on a map or set
-resource "aws_security_group_rule" "app_ports" {
-  for_each = toset(local.allowed_ports)
+resource "aws_security_group_rule" "asf_app_ports" {
+  for_each = toset(local.asf_allowed_ports)
 
   type              = "ingress"
   from_port         = each.value
   to_port           = each.value
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.main.id
+  security_group_id = aws_security_group.asf_main.id
 
   description = "Allow ${each.value} inbound"
 }
 
 # Dynamic Block Example - Creates nested blocks dynamically
-resource "aws_security_group" "main" {
-  name        = local.app_name
-  description = "Security group for ${local.app_name}"
-  vpc_id      = aws_vpc.main.id
+resource "aws_security_group" "asf_main" {
+  name        = local.asf_app_name
+  description = "Security group for ${local.asf_app_name}"
+  vpc_id      = aws_vpc.asf_main.id
 
   dynamic "ingress" {
-    for_each = local.storage_config[var.environment].network_rules
+    for_each = local.asf_storage_config[var.asf_environment].network_rules
     content {
       from_port   = 443
       to_port     = 443
@@ -150,52 +153,52 @@ resource "aws_security_group" "main" {
     }
   }
 
-  tags = local.tags
+  tags = local.asf_tags
 }
 
 # For Expression in Resource - Creates instances based on instance_configs
-resource "aws_instance" "servers" {
-  for_each = local.instance_configs
+resource "aws_instance" "asf_servers" {
+  for_each = local.asf_instance_configs
 
   ami           = "ami-0c55b159cbfafe1f0"
   instance_type = each.value.instance_type
 
-  tags = merge(local.tags, {
+  tags = merge(local.asf_tags, {
     Name     = each.value.name
     Priority = each.value.priority
   })
 }
 
 # Data Block with Dynamic Query - Fetches available VM sizes
-data "azurerm_virtual_machine_sizes" "available" {
-  location = var.region
+data "azurerm_virtual_machine_sizes" "asf_available" {
+  location = var.asf_region
 }
 
 # Using For Expression with Data Source Results
-resource "azurerm_virtual_machine" "vm_cluster" {
+resource "azurerm_virtual_machine" "asf_vm_cluster" {
   for_each = {
-    for idx, size in local.selected_sizes :
-    "${local.app_name}-vm-${idx}" => size
+    for idx, size in local.asf_selected_sizes :
+    "${local.asf_app_name}-vm-${idx}" => size
   }
 
   name                  = each.key
-  location              = azurerm_resource_groupx.main.location
-  resource_group_name   = azurerm_resource_group.main.name
+  location              = azurerm_resource_groupx.asf_main.location
+  resource_group_name   = azurerm_resource_group.asf_main.name
   vm_size               = each.value.name
-  network_interface_ids = [azurerm_network_interface.main[each.key].id]
+  network_interface_ids = [azurerm_network_interface.asf_main[each.key].id]
 
   dynamic "storage_data_disk" {
-    for_each = local.storage_config[var.environment].containers
+    for_each = local.asf_storage_config[var.asf_environment].containers
     content {
       name              = "${each.key}-${storage_data_disk.value}"
       create_option     = "Empty"
       disk_size_gb      = 10
       lun               = storage_data_disk.key
-      managed_disk_type = local.storage_config[var.environment].tier == "Premium" ? "Premium_LRS" : "Standard_LRS"
+      managed_disk_type = local.asf_storage_config[var.asf_environment].tier == "Premium" ? "Premium_LRS" : "Standard_LRS"
     }
   }
 
-  tags = local.tags
+  tags = local.asf_tags
 }
 
 

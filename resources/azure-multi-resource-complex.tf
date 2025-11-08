@@ -1,4 +1,7 @@
-variable "environments" {
+# Test: Azure Multi Resource Complex
+# Prefix: amr_ (azure_multi_resource)
+
+variable "amr_environments" {
   type = list(object({
     name = string
     tier = string
@@ -27,7 +30,7 @@ variable "environments" {
   ]
 }
 
-variable "service_config" {
+variable "amr_service_config" {
   type = map(object({
     enabled  = bool
     settings = map(string)
@@ -53,7 +56,7 @@ variable "service_config" {
   }
 }
 
-variable "tags_config" {
+variable "amr_tags_config" {
   type = map(map(string))
   default = {
     dev = {
@@ -69,20 +72,20 @@ variable "tags_config" {
 
 locals {
   # Transform environments into a map for easier lookup
-  env_map = {
-    for env in var.environments : env.name => env
+  amr_env_map = {
+    for env in var.amr_environments : env.name => env
   }
 
   # Create complex nested configuration for each environment
-  environment_configs = {
-    for env in var.environments : env.name => {
+  amr_environment_configs = {
+    for env in var.amr_environments : env.name => {
       tier_config = {
         instance_type = env.tier == "basic" ? "t3.small" : "t3.large"
         max_count     = env.config.instance_count * (env.tier == "basic" ? 1 : 2)
         multi_az      = env.config.multi_az
       }
       services = {
-        for service_name, service in var.service_config :
+        for service_name, service in var.amr_service_config :
         service_name => {
           enabled = service.enabled && (env.tier == "premium" || service_name == "web")
           port_config = [
@@ -99,7 +102,7 @@ locals {
         }
       }
       tags = merge(
-        lookup(var.tags_config, env.name, {}),
+        lookup(var.amr_tags_config, env.name, {}),
         {
           "ManagedBy"   = "Terraform"
           "Environment" = env.name
@@ -110,8 +113,8 @@ locals {
   }
 
   # Create flattened service configurations for each environment
-  service_deployments = flatten([
-    for env_name, env_config in local.environment_configs : [
+  amr_service_deployments = flatten([
+    for env_name, env_config in local.amr_environment_configs : [
       for service_name, service in env_config.services : [
         for port_config in service.port_config : {
           deployment_key = "${env_name}-${service_name}-${port_config.number}"
@@ -129,8 +132,8 @@ locals {
   ])
 
   # Generate conditional configurations based on environment tier
-  premium_configs = {
-    for env_name, env_config in local.environment_configs :
+  amr_premium_configs = {
+    for env_name, env_config in local.amr_environment_configs :
     env_name => {
       backup_enabled = env_config.tier_config.multi_az
       monitoring = {
@@ -143,13 +146,13 @@ locals {
           env_config.tier_config.multi_az ? "network" : null
         ]
       }
-    } if lookup(local.env_map, env_name).tier == "premium"
+    } if lookup(local.amr_env_map, env_name).tier == "premium"
   }
 }
 
 
 # Complex nested object with dynamic validation rules
-variable "advanced_environments" {
+variable "amr_advanced_environments" {
   type = list(object({
     name     = string
     tier     = string
@@ -281,8 +284,8 @@ variable "advanced_environments" {
 # Advanced locals with complex transformations
 locals {
   # Generate normalized environment configurations
-  normalized_environments = {
-    for env in var.advanced_environments : env.name => {
+  amr_normalized_environments = {
+    for env in var.amr_advanced_environments : env.name => {
       config = merge(
         {
           tier     = env.tier
@@ -344,8 +347,8 @@ locals {
   }
 
   # Generate flattened subnet configurations
-  flattened_subnets = flatten([
-    for env_name, env in local.normalized_environments : [
+  amr_flattened_subnets = flatten([
+    for env_name, env in local.amr_normalized_environments : [
       for subnet_key, subnet in env.network.subnet_configs : {
         key         = "${env_name}-${subnet_key}"
         environment = env_name
@@ -366,8 +369,8 @@ locals {
   ])
 
   # Generate conditional monitoring configurations
-  monitoring_configs = {
-    for env_name, env in local.normalized_environments : env_name => {
+  amr_monitoring_configs = {
+    for env_name, env in local.amr_normalized_environments : env_name => {
       metrics_enabled  = contains(env.config.features, "monitoring")
       retention_period = env.config.retention_days
       alert_endpoints  = env.config.is_development ? ["dev-team@example.com"] : ["prod-team@example.com", "oncall@example.com"]
@@ -390,13 +393,13 @@ locals {
 
 
 # Reference data sources needed by the resources
-data "aws_availability_zones" "available" {
+data "aws_availability_zones" "amr_available" {
   state = "available"
 }
 
 # Base infrastructure resources
-resource "aws_vpc" "main" {
-  for_each = local.normalized_environments
+resource "aws_vpc" "amr_main" {
+  for_each = local.amr_normalized_environments
 
   cidr_block = each.value.network.vpc_config.cidr_block
 
@@ -406,8 +409,8 @@ resource "aws_vpc" "main" {
   }
 }
 
-resource "aws_ecs_cluster" "main" {
-  for_each = local.normalized_environments
+resource "aws_ecs_cluster" "amr_main" {
+  for_each = local.amr_normalized_environments
 
   name = "${each.key}-cluster"
 
@@ -417,31 +420,31 @@ resource "aws_ecs_cluster" "main" {
 }
 
 # 1. Complex AWS ECS Service with dynamic configurations
-resource "aws_ecs_service" "microservices" {
+resource "aws_ecs_service" "amr_microservices" {
   for_each = {
-    for deployment in local.service_deployments :
+    for deployment in local.amr_service_deployments :
     deployment.deployment_key => deployment
     if contains(["web", "api"], deployment.service)
   }
 
   name          = each.value.deployment_key
-  cluster       = aws_ecs_cluster.main[each.value.environment].id
-  desired_count = local.env_map[each.value.environment].config.instance_count
-  launch_type   = local.env_map[each.value.environment].tier == "premium" ? "FARGATE" : "EC2"
+  cluster       = aws_ecs_cluster.amr_main[each.value.environment].id
+  desired_count = local.amr_env_map[each.value.environment].config.instance_count
+  launch_type   = local.amr_env_map[each.value.environment].tier == "premium" ? "FARGATE" : "EC2"
 
   network_configuration {
     subnets = [
-      for subnet_key, subnet in local.normalized_environments[each.value.environment].network.subnet_configs :
-      aws_subnet.main["${each.value.environment}-${subnet_key}"].id
+      for subnet_key, subnet in local.amr_normalized_environments[each.value.environment].network.subnet_configs :
+      aws_subnet.amr_main["${each.value.environment}-${subnet_key}"].id
     ]
-    security_groups  = [aws_security_group.service_sg[each.value.environment].id]
+    security_groups  = [aws_security_group.amr_service_sg[each.value.environment].id]
     assign_public_ip = each.value.protocol == "https"
   }
 
   dynamic "load_balancer" {
     for_each = each.value.protocol == "https" ? [1] : []
     content {
-      target_group_arn = aws_lb_target_group.service_tg[each.key].arn
+      target_group_arn = aws_lb_target_group.amr_service_tg[each.key].arn
       container_name   = each.value.service
       container_port   = each.value.port
     }
@@ -449,9 +452,9 @@ resource "aws_ecs_service" "microservices" {
 
   tags = merge(
     each.value.tags,
-    local.monitoring_configs[each.value.environment].metrics_enabled ? {
+    local.amr_monitoring_configs[each.value.environment].metrics_enabled ? {
       "Monitoring"    = "enabled"
-      "RetentionDays" = tostring(local.monitoring_configs[each.value.environment].retention_period)
+      "RetentionDays" = tostring(local.amr_monitoring_configs[each.value.environment].retention_period)
     } : {}
   )
 
@@ -461,9 +464,9 @@ resource "aws_ecs_service" "microservices" {
 }
 
 # 2. Complex Storage Configuration with conditional features
-resource "aws_ebs_volume" "storage_volumes" {
+resource "aws_ebs_volume" "amr_storage_volumes" {
   for_each = merge(flatten([
-    for env_name, env in local.normalized_environments : [
+    for env_name, env in local.amr_normalized_environments : [
       for storage_key, storage in env.storage_configs : {
         "${env_name}-${storage_key}" = merge(storage, {
           environment  = env_name
@@ -473,7 +476,7 @@ resource "aws_ebs_volume" "storage_volumes" {
     ]
   ])...)
 
-  availability_zone = data.aws_availability_zones.available.names[0]
+  availability_zone = data.aws_availability_zones.amr_available.names[0]
   size              = each.value.normalized_size
   type              = each.value.type
 
@@ -489,7 +492,7 @@ resource "aws_ebs_volume" "storage_volumes" {
   }
 
   tags = merge(
-    try(local.normalized_environments[each.value.environment].config.tags, {}),
+    try(local.amr_normalized_environments[each.value.environment].config.tags, {}),
     {
       Name            = "${each.value.environment}-${each.value.storage_name}"
       BackupEligible  = tostring(each.value.backup_eligible)
@@ -499,19 +502,19 @@ resource "aws_ebs_volume" "storage_volumes" {
 }
 
 # Create VPC Endpoint for S3 (referenced by security group)
-resource "aws_vpc_endpoint" "s3" {
-  for_each = local.normalized_environments
+resource "aws_vpc_endpoint" "amr_s3" {
+  for_each = local.amr_normalized_environments
 
-  vpc_id       = aws_vpc.main[each.key].id
-  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
+  vpc_id       = aws_vpc.amr_main[each.key].id
+  service_name = "com.amazonaws.${data.aws_region.amr_current.name}.s3"
 }
 
 # 3. Complex Security Group with dynamic rules
-resource "aws_security_group" "service_sg" {
-  for_each = local.normalized_environments
+resource "aws_security_group" "amr_service_sg" {
+  for_each = local.amr_normalized_environments
 
   name_prefix = "${each.key}-service-sg"
-  vpc_id      = aws_vpc.main[each.key].id
+  vpc_id      = aws_vpc.amr_main[each.key].id
   description = "Security group for ${each.key} environment services"
 
   dynamic "ingress" {
@@ -536,7 +539,7 @@ resource "aws_security_group" "service_sg" {
       from_port       = 0
       to_port         = 0
       protocol        = "-1"
-      prefix_list_ids = [aws_vpc_endpoint.s3[each.key].prefix_list_id]
+      prefix_list_ids = [aws_vpc_endpoint.amr_s3[each.key].prefix_list_id]
       description     = "Allow outbound traffic to S3 VPC Endpoint for ${egress.key}"
     }
   }
@@ -546,7 +549,7 @@ resource "aws_security_group" "service_sg" {
   }
 
   tags = merge(
-    local.normalized_environments[each.key].config.tier == "development" ? {
+    local.amr_normalized_environments[each.key].config.tier == "development" ? {
       Environment  = "development"
       DebugEnabled = "true"
       } : {

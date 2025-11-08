@@ -1,3 +1,6 @@
+# Test: AWS VPC Full Networking Stack
+# Prefix: avf_ (aws_vpc_full)
+
 terraform {
   required_providers {
     aws = {
@@ -9,31 +12,31 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region = var.avf_aws_region
 
   default_tags {
-    tags = var.default_tags
+    tags = var.avf_default_tags
   }
 }
 
-variable "aws_region" {
+variable "avf_aws_region" {
   type        = string
   default     = "us-east-1"
   description = "AWS region for all resources"
 
   validation {
-    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]{1}$", var.aws_region))
+    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]{1}$", var.avf_aws_region))
     error_message = "AWS region must be valid (e.g., us-east-1, eu-west-1)."
   }
 }
 
-variable "default_tags" {
+variable "avf_default_tags" {
   type        = map(string)
   default     = {}
   description = "Default tags for all resources"
 }
 
-variable "vpc_configs" {
+variable "avf_vpc_configs" {
   type = map(object({
     vpc_id               = string
     cidr_block           = string
@@ -108,7 +111,7 @@ variable "vpc_configs" {
 
   validation {
     condition = length([
-      for vpc_key, vpc in var.vpc_configs :
+      for vpc_key, vpc in var.avf_vpc_configs :
       vpc if !can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$", vpc.cidr_block)) ||
       !can(tonumber(split("/", vpc.cidr_block)[1]) >= 16 && tonumber(split("/", vpc.cidr_block)[1]) <= 28)
     ]) == 0
@@ -117,7 +120,7 @@ variable "vpc_configs" {
 
   validation {
     condition = length(flatten([
-      for vpc_key, vpc in var.vpc_configs : [
+      for vpc_key, vpc in var.avf_vpc_configs : [
         for subnet in vpc.subnets :
         subnet if !contains(["public", "private"], subnet.type)
       ]
@@ -127,9 +130,9 @@ variable "vpc_configs" {
 }
 
 locals {
-  subnet_configs = {
+  avf_subnet_configs = {
     for pair in flatten([
-      for vpc_key, vpc in var.vpc_configs : [
+      for vpc_key, vpc in var.avf_vpc_configs : [
         for subnet in vpc.subnets : {
           key = "${vpc_key}-${subnet.type}-${subnet.zone}"
           value = merge(subnet, {
@@ -142,23 +145,23 @@ locals {
   }
 
   // Group subnets by type for route table association
-  subnet_by_type = {
-    for vpc_key, vpc in var.vpc_configs : vpc_key => {
+  avf_subnet_by_type = {
+    for vpc_key, vpc in var.avf_vpc_configs : vpc_key => {
       public = [
-        for subnet_key, subnet in local.subnet_configs : subnet_key
+        for subnet_key, subnet in local.avf_subnet_configs : subnet_key
         if subnet.vpc_key == vpc_key && subnet.type == "public"
       ]
       private = [
-        for subnet_key, subnet in local.subnet_configs : subnet_key
+        for subnet_key, subnet in local.avf_subnet_configs : subnet_key
         if subnet.vpc_key == vpc_key && subnet.type == "private"
       ]
     }
   }
 
   // NAT Gateway configurations
-  nat_gateway_configs = {
+  avf_nat_gateway_configs = {
     for pair in flatten([
-      for vpc_key, vpc in var.vpc_configs : [
+      for vpc_key, vpc in var.avf_vpc_configs : [
         for nat_key, nat in vpc.nat_gateways : {
           key = "${vpc_key}-${nat_key}"
           value = merge(nat, {
@@ -175,8 +178,8 @@ locals {
 
 
 
-resource "aws_vpc" "main" {
-  for_each = var.vpc_configs
+resource "aws_vpc" "avf_main" {
+  for_each = var.avf_vpc_configs
 
   cidr_block           = each.value.cidr_block
   enable_dns_hostnames = each.value.enable_dns_hostnames
@@ -188,8 +191,8 @@ resource "aws_vpc" "main" {
 }
 
 
-resource "aws_subnet" "main" {
-  for_each = local.subnet_configs
+resource "aws_subnet" "avf_main" {
+  for_each = local.avf_subnet_configs
 
   vpc_id            = each.value.vpc_id
   cidr_block        = each.value.cidr_block
@@ -211,17 +214,17 @@ resource "aws_subnet" "main" {
   }
 }
 
-resource "aws_route_table" "public" {
+resource "aws_route_table" "avf_public" {
   for_each = {
-    for vpc_key, vpc in var.vpc_configs : vpc_key => vpc
-    if length(local.subnet_by_type[vpc_key].public) > 0
+    for vpc_key, vpc in var.avf_vpc_configs : vpc_key => vpc
+    if length(local.avf_subnet_by_type[vpc_key].public) > 0
   }
 
   vpc_id = each.value.vpc_id
 
   dynamic "route" {
     for_each = distinct(flatten([
-      for subnet_key in local.subnet_by_type[each.key].public : local.subnet_configs[subnet_key].route_table_routes
+      for subnet_key in local.avf_subnet_by_type[each.key].public : local.avf_subnet_configs[subnet_key].route_table_routes
     ]))
 
     content {
@@ -237,17 +240,17 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_route_table" "private" {
+resource "aws_route_table" "avf_private" {
   for_each = {
-    for vpc_key, vpc in var.vpc_configs : vpc_key => vpc
-    if length(local.subnet_by_type[vpc_key].private) > 0
+    for vpc_key, vpc in var.avf_vpc_configs : vpc_key => vpc
+    if length(local.avf_subnet_by_type[vpc_key].private) > 0
   }
 
   vpc_id = each.value.vpc_id
 
   dynamic "route" {
     for_each = distinct(flatten([
-      for subnet_key in local.subnet_by_type[each.key].private : local.subnet_configs[subnet_key].route_table_routes
+      for subnet_key in local.avf_subnet_by_type[each.key].private : local.avf_subnet_configs[subnet_key].route_table_routes
     ]))
 
     content {
@@ -262,28 +265,28 @@ resource "aws_route_table" "private" {
   }
 }
 
-resource "aws_route_table_association" "public" {
+resource "aws_route_table_association" "avf_public" {
   for_each = {
-    for vpc_key, subnets in local.subnet_by_type : vpc_key => subnets.public
+    for vpc_key, subnets in local.avf_subnet_by_type : vpc_key => subnets.public
     if length(subnets.public) > 0
   }
 
-  subnet_id      = aws_subnet.main[each.value].id
-  route_table_id = aws_route_table.public[each.key].id
+  subnet_id      = aws_subnet.avf_main[each.value].id
+  route_table_id = aws_route_table.avf_public[each.key].id
 }
 
-resource "aws_route_table_association" "private" {
+resource "aws_route_table_association" "avf_private" {
   for_each = {
-    for vpc_key, subnets in local.subnet_by_type : vpc_key => subnets.private
+    for vpc_key, subnets in local.avf_subnet_by_type : vpc_key => subnets.private
     if length(subnets.private) > 0
   }
 
-  subnet_id      = aws_subnet.main[each.value].id
-  route_table_id = aws_route_table.private[each.key].id
+  subnet_id      = aws_subnet.avf_main[each.value].id
+  route_table_id = aws_route_table.avf_private[each.key].id
 }
 
-resource "aws_eip" "nat" {
-  for_each = local.nat_gateway_configs
+resource "aws_eip" "avf_nat" {
+  for_each = local.avf_nat_gateway_configs
 
   vpc = true
 
@@ -292,49 +295,49 @@ resource "aws_eip" "nat" {
   }
 }
 
-resource "aws_nat_gateway" "main" {
-  for_each = local.nat_gateway_configs
+resource "aws_nat_gateway" "avf_main" {
+  for_each = local.avf_nat_gateway_configs
 
   allocation_id = coalesce(
     each.value.eip_allocation_id,
-    aws_eip.nat[each.key].id
+    aws_eip.avf_nat[each.key].id
   )
-  subnet_id = aws_subnet.main["${each.value.vpc_key}-${each.value.subnet_key}"].id
+  subnet_id = aws_subnet.avf_main["${each.value.vpc_key}-${each.value.subnet_key}"].id
 
   tags = {
     Name = each.key
   }
 }
 
-output "vpc_ids" {
+output "avf_vpc_ids" {
   description = "Map of VPC IDs"
   value = {
-    for vpc_key, vpc in aws_vpc.main : vpc_key => vpc.id
+    for vpc_key, vpc in aws_vpc.avf_main : vpc_key => vpc.id
   }
 }
 
-output "subnet_ids" {
+output "avf_subnet_ids" {
   description = "Map of subnet IDs"
   value = {
-    for subnet_key, subnet in aws_subnet.main : subnet_key => subnet.id
+    for subnet_key, subnet in aws_subnet.avf_main : subnet_key => subnet.id
   }
 }
 
-output "nat_gateway_ids" {
+output "avf_nat_gateway_ids" {
   description = "Map of NAT Gateway IDs"
   value = {
-    for nat_key, nat in aws_nat_gateway.main : nat_key => nat.id
+    for nat_key, nat in aws_nat_gateway.avf_main : nat_key => nat.id
   }
 }
 
-output "route_table_ids" {
+output "avf_route_table_ids" {
   description = "Map of route table IDs"
   value = {
     public = {
-      for rt_key, rt in aws_route_table.public : rt_key => rt.id
+      for rt_key, rt in aws_route_table.avf_public : rt_key => rt.id
     }
     private = {
-      for rt_key, rt in aws_route_table.private : rt_key => rt.id
+      for rt_key, rt in aws_route_table.avf_private : rt_key => rt.id
     }
   }
 }

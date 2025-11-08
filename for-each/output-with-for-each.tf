@@ -1,5 +1,8 @@
+# Test: Output With For-Each
+# Prefix: owf_ (output_with_foreach)
+
 # First define some instances using for_each
-variable "instance_configs" {
+variable "owf_instance_configs" {
   type = map(object({
     instance_type = string
     environment   = string
@@ -16,8 +19,8 @@ variable "instance_configs" {
   }
 }
 
-resource "aws_instance" "servers" {
-  for_each      = var.instance_configs
+resource "aws_instance" "owf_servers" {
+  for_each      = var.owf_instance_configs
   id            = "simulated id"
   private_ip    = "10.0.0.2 simulated"
   public_ip     = "10.0.0.1 simulated"
@@ -31,16 +34,16 @@ resource "aws_instance" "servers" {
 }
 
 # Output block using for_each
-output "instance_ips" {
+output "owf_instance_ips" {
   value = {
-    for key, instance in aws_instance.servers : key => instance.private_ip
+    for key, instance in aws_instance.owf_servers : key => instance.private_ip
   }
 }
 
 # Alternative way using for_each directly in the output block
-output "instance_details" {
+output "owf_instance_details" {
   value = {
-    for key, instance in aws_instance.servers : key => {
+    for key, instance in aws_instance.owf_servers : key => {
       instance_id = instance.id
       private_ip  = instance.private_ip
       public_ip   = instance.public_ip
@@ -51,11 +54,11 @@ output "instance_details" {
 
 
 locals {
-  instance_ips = output.instance_ips
-  test_value   = output.instance_details
-  dev_instances = {
-    for name, ip in local.instance_ips :
+  owf_instance_ips = output.owf_instance_ips
+  owf_test_value   = output.owf_instance_details
+  owf_dev_instances = {
+    for name, ip in local.owf_instance_ips :
     name => ip
-    if output.instance_details[name].environment == "dev"
+    if output.owf_instance_details[name].environment == "dev"
   }
 }

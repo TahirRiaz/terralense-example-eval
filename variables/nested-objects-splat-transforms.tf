@@ -1,11 +1,13 @@
+# Test: Nested Objects Splat Transforms
+# Prefix: nos_ (nested_objects_splat)
 
 # Base Variables
-variable "environment" {
+variable "nos_environment" {
   type    = string
   default = "development"
 }
 
-variable "tags" {
+variable "nos_tags" {
   type = map(string)
   default = {
     Environment = "dev"
@@ -16,7 +18,7 @@ variable "tags" {
 
 
 # Test Case 1: Splat Expressions
-variable "instances" {
+variable "nos_instances" {
   type = list(object({
     id   = string
     tags = map(string)
@@ -38,7 +40,7 @@ variable "instances" {
 }
 
 # Test Case 2: Complex Type Constraints with Nested Objects
-variable "network_config" {
+variable "nos_network_config" {
   type = object({
     vpc = object({
       cidr_block = string
@@ -86,23 +88,23 @@ variable "network_config" {
 
 # Test Case 3: Complex String Templates
 locals {
-  base_tags = {
-    Environment = var.environment
-    Project     = var.tags["Project"]
+  nos_base_tags = {
+    Environment = var.nos_environment
+    Project     = var.nos_tags["Project"]
   }
 
-  instance_names = [for i in range(3) : format("server-%s-%02d", var.environment, i + 1)]
+  nos_instance_names = [for i in range(3) : format("server-%s-%02d", var.nos_environment, i + 1)]
 
-  subnet_config = {
-    for subnet in var.network_config.vpc.subnets :
+  nos_subnet_config = {
+    for subnet in var.nos_network_config.vpc.subnets :
     subnet.zone => {
       cidr = subnet.cidr
       name = "subnet-${substr(subnet.zone, -2, 2)}"
     }
   }
 
-  security_group_rules = flatten([
-    for sg_name, rules in var.network_config.security_groups : [
+  nos_security_group_rules = flatten([
+    for sg_name, rules in var.nos_network_config.security_groups : [
       for rule in rules : {
         name     = sg_name
         port     = rule.from_port == rule.to_port ? rule.from_port : "${rule.from_port}-${rule.to_port}"
@@ -113,23 +115,23 @@ locals {
 }
 
 # Test Case 4: Complex Outputs with Transformations
-output "network_summary" {
+output "nos_network_summary" {
   value = {
     vpc_info = {
       cidr_blocks = {
-        vpc     = var.network_config.vpc.cidr_block
-        subnets = [for s in var.network_config.vpc.subnets : s.cidr]
+        vpc     = var.nos_network_config.vpc.cidr_block
+        subnets = [for s in var.nos_network_config.vpc.subnets : s.cidr]
       }
-      subnet_mapping = local.subnet_config
+      subnet_mapping = local.nos_subnet_config
     }
     security_rules = {
-      for rule in local.security_group_rules :
+      for rule in local.nos_security_group_rules :
       "${rule.name}-${rule.port}" => rule
     }
     instance_metadata = {
-      names        = local.instance_names
-      base_tags    = local.base_tags
-      instance_ids = var.instances[*].id
+      names        = local.nos_instance_names
+      base_tags    = local.nos_base_tags
+      instance_ids = var.nos_instances[*].id
     }
   }
 }

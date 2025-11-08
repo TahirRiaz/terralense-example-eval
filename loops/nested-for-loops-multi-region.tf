@@ -1,11 +1,14 @@
+# Test: Nested For Loops - Multi-Region
+# Prefix: nfl_ (nested_for_loops)
+
 # Define test variables
-variable "environments" {
+variable "nfl_environments" {
   description = "List of environments to test"
   type        = list(string)
   default     = ["dev", "staging", "prod"]
 }
 
-variable "instance_types" {
+variable "nfl_instance_types" {
   description = "Map of instance types per environment"
   type        = map(list(string))
   default = {
@@ -15,7 +18,7 @@ variable "instance_types" {
   }
 }
 
-variable "regions" {
+variable "nfl_regions" {
   description = "List of AWS regions"
   type        = list(string)
   default     = ["us-east-1", "us-west-2"]
@@ -24,10 +27,10 @@ variable "regions" {
 # Local variable to demonstrate nested for expressions
 locals {
   # Create a map of all possible combinations
-  all_combinations = {
-    for env in var.environments : env => {
-      for region in var.regions : region => [
-        for instance_type in var.instance_types[env] : {
+  nfl_all_combinations = {
+    for env in var.nfl_environments : env => {
+      for region in var.nfl_regions : region => [
+        for instance_type in var.nfl_instance_types[env] : {
           environment = env
           region      = region
           instance    = instance_type
@@ -39,8 +42,8 @@ locals {
 
 
   # Flatten the nested structure for easier verification
-  flattened_combinations = flatten([
-    for env, regions in local.all_combinations :
+  nfl_flattened_combinations = flatten([
+    for env, regions in local.nfl_all_combinations :
     flatten([
       for region, instances in regions :
       instances
@@ -48,32 +51,32 @@ locals {
   ])
 
   # Create a map with unique keys for verification
-  keyed_combinations = {
-    for item in local.flattened_combinations :
+  nfl_keyed_combinations = {
+    for item in local.nfl_flattened_combinations :
     item.tag => item
   }
 
 }
 
 # Output for verification
-output "nested_loop_results" {
+output "nfl_nested_loop_results" {
   description = "Results of nested for loop operations"
-  value       = local.all_combinations
+  value       = local.nfl_all_combinations
 }
 
-output "flattened_results" {
+output "nfl_flattened_results" {
   description = "Flattened results for easier verification"
-  value       = local.flattened_combinations
+  value       = local.nfl_flattened_combinations
 }
 
-output "keyed_results" {
+output "nfl_keyed_results" {
   description = "Keyed results for direct access testing"
-  value       = local.keyed_combinations
+  value       = local.nfl_keyed_combinations
 }
 
 # Test resource to verify the loops work in resource creation
-resource "null_resource" "test_instances" {
-  for_each = local.keyed_combinations
+resource "null_resource" "nfl_test_instances" {
+  for_each = local.nfl_keyed_combinations
 
   triggers = {
     environment = each.value.environment

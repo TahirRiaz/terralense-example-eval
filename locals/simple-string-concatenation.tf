@@ -1,14 +1,17 @@
-variable "environment" {
+# Test: Simple String Concatenation
+# Prefix: ssc_ (simple_string_concatenation)
+
+variable "ssc_environment" {
   type    = string
   default = "dev"
 }
 
-variable "region" {
+variable "ssc_region" {
   type    = string
   default = "us-west-2"
 }
 
-variable "app_config" {
+variable "ssc_app_config" {
   type = object({
     name       = string
     port       = number
@@ -21,7 +24,7 @@ variable "app_config" {
   }
 }
 
-variable "instance_sizes" {
+variable "ssc_instance_sizes" {
   type = map(string)
   default = {
     small  = "t3.micro"
@@ -32,50 +35,50 @@ variable "instance_sizes" {
 
 locals {
   # Simple string concatenation
-  app_name = "${var.app_config.name}-${var.environment}"
+  ssc_app_name = "${var.ssc_app_config.name}-${var.ssc_environment}"
 
   # Basic map lookup with default
-  instance_type = lookup(var.instance_sizes, var.environment == "prod" ? "large" : "small", "t3.micro")
+  ssc_instance_type = lookup(var.ssc_instance_sizes, var.ssc_environment == "prod" ? "large" : "small", "t3.micro")
 
   # Simple conditional
-  is_production = var.environment == "prod"
+  ssc_is_production = var.ssc_environment == "prod"
 
   # Basic map transformation
-  tags = {
-    Name        = local.app_name
-    Environment = var.environment
-    Region      = var.region
+  ssc_tags = {
+    Name        = local.ssc_app_name
+    Environment = var.ssc_environment
+    Region      = var.ssc_region
     Managed_By  = "terraform"
   }
 
   # Simple list
-  allowed_ports = concat(
-    [var.app_config.port],
-    var.app_config.enable_ssl ? [443] : []
+  ssc_allowed_ports = concat(
+    [var.ssc_app_config.port],
+    var.ssc_app_config.enable_ssl ? [443] : []
   )
 }
 
 /*
 
 # Given input values:
-var.environment = "dev"
-var.region = "us-west-2"
-var.app_config = {
+var.ssc_environment = "dev"
+var.ssc_region = "us-west-2"
+var.ssc_app_config = {
     name = "myapp"
     port = 8080
     enable_ssl = true
 }
 
 # Resolved locals:
-local.app_name = "myapp-dev"
-local.instance_type = "t3.micro"  # because environment is "dev", so it picks "small"
-local.is_production = false
-local.tags = {
+local.ssc_app_name = "myapp-dev"
+local.ssc_instance_type = "t3.micro"  # because environment is "dev", so it picks "small"
+local.ssc_is_production = false
+local.ssc_tags = {
     Name = "myapp-dev"
     Environment = "dev"
     Region = "us-west-2"
     Managed_By = "terraform"
 }
-local.allowed_ports = [8080, 443]  # includes 443 because enable_ssl is true
+local.ssc_allowed_ports = [8080, 443]  # includes 443 because enable_ssl is true
 
 */
