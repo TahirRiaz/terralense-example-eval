@@ -41,7 +41,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve for_each iterations, track `each.key` and `each.value` references, and handle output references in locals.
+**Expected Resolution**: Terralens should resolve for_each iterations, track `each.key` and `each.value` references, and handle output references in locals.
 
 ---
 
@@ -80,7 +80,7 @@ resource "azurerm_resource_group" "default2" {
 }
 ```
 
-**Expected Resolution**: Terralense should expand for_each and resolve keyed resource references.
+**Expected Resolution**: Terralens should expand for_each and resolve keyed resource references.
 
 ## Common Patterns
 
@@ -139,7 +139,7 @@ For_each accepts:
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Recognize for_each meta-argument
 - [ ] Resolve for_each with map inputs

@@ -58,14 +58,14 @@ resource "aws_subnet" "main" {
 }
 ```
 
-**Expected Resolution**: This file shows what Terralense's output should look like after full evaluation.
+**Expected Resolution**: This file shows what Terralens's output should look like after full evaluation.
 
 ## Purpose of Resolved Examples
 
 Resolved examples serve several purposes:
 
 1. **Reference Implementation**: Show what fully evaluated Terraform should look like
-2. **Testing Comparison**: Provide expected output for Terralense test validation
+2. **Testing Comparison**: Provide expected output for Terralens test validation
 3. **Documentation**: Help users understand how Terraform resolves complex expressions
 4. **Debugging**: Aid in identifying where resolution differs from expected
 
@@ -96,11 +96,11 @@ Resolved examples serve several purposes:
 ## How to Use These Files
 
 ### As Test Fixtures
-Compare Terralense output against these files:
+Compare Terralens output against these files:
 
 ```bash
-# Run Terralense
-terralense resolve input.tf > output.tf
+# Run Terralens
+terralens resolve input.tf > output.tf
 
 # Compare with expected
 diff output.tf resolved/expected.tf
@@ -113,7 +113,7 @@ Study these files to understand:
 - How references are replaced with values
 
 ### As Development Guide
-When developing Terralense features:
+When developing Terralens features:
 1. Start with a test case in another category
 2. Create the expected resolved output here
 3. Implement the feature

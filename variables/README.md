@@ -53,7 +53,7 @@ variable "service_config" {
 }
 ```
 
-**Expected Resolution**: Terralense should parse complex type constraints, validate structure, and resolve nested attribute references.
+**Expected Resolution**: Terralens should parse complex type constraints, validate structure, and resolve nested attribute references.
 
 ---
 
@@ -103,7 +103,7 @@ output "network_summary" {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve nested object references, splat expressions, and for transformations.
+**Expected Resolution**: Terralens should resolve nested object references, splat expressions, and for transformations.
 
 ## Common Patterns
 
@@ -190,7 +190,7 @@ variable "config" {
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Parse all primitive types (string, number, bool)
 - [ ] Parse collection types (list, map, set)

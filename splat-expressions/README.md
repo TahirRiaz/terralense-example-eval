@@ -33,7 +33,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should expand the splat expression and return a list of the requested attributes from all instances.
+**Expected Resolution**: Terralens should expand the splat expression and return a list of the requested attributes from all instances.
 
 ## Common Patterns
 
@@ -91,7 +91,7 @@ aws_instance.server[*].id
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Recognize splat operator syntax `[*]`
 - [ ] Expand splat to extract attributes from all instances

@@ -46,7 +46,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should evaluate try function, conditionals, and validation logic.
+**Expected Resolution**: Terralens should evaluate try function, conditionals, and validation logic.
 
 ---
 
@@ -86,7 +86,7 @@ resource "aws_security_group" "complex" {
 }
 ```
 
-**Expected Resolution**: Terralense should parse lifecycle blocks and preconditions.
+**Expected Resolution**: Terralens should parse lifecycle blocks and preconditions.
 
 ---
 
@@ -100,7 +100,7 @@ resource "aws_security_group" "complex" {
 - Optional attributes
 - Variable validation with nested conditions
 
-**Expected Resolution**: Terralense should handle nested validation and optional attributes.
+**Expected Resolution**: Terralens should handle nested validation and optional attributes.
 
 ## Common Patterns
 
@@ -258,7 +258,7 @@ locals {
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Evaluate ternary conditional expressions
 - [ ] Handle nested conditionals

@@ -1,6 +1,6 @@
-# Contributing to Terralense Test Suite
+# Contributing to Terralens Test Suite
 
-Thank you for your interest in contributing to the Terralense evaluation test suite! This guide will help you add new test cases effectively.
+Thank you for your interest in contributing to the Terralens evaluation test suite! This guide will help you add new test cases effectively.
 
 ## Table of Contents
 
@@ -50,7 +50,7 @@ A good test case should:
 3. **Be self-contained**: Include all necessary variables and resources
 4. **Be realistic**: Use patterns that appear in real Terraform code
 5. **Be documented**: Include comments explaining non-obvious patterns
-6. **Have clear expected outcomes**: Document what Terralense should resolve
+6. **Have clear expected outcomes**: Document what Terralens should resolve
 
 ### Test Complexity Guidelines
 
@@ -188,7 +188,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve the for expression and type conversions.
+**Expected Resolution**: Terralens should resolve the for expression and type conversions.
 ```
 
 #### Update TEST-CATALOG.md
@@ -255,7 +255,7 @@ Every new test must include:
 # Test: Complex Map Transformations
 # Category: Locals
 # Complexity: Medium
-# Purpose: Validates Terralense can resolve map comprehensions with type conversions
+# Purpose: Validates Terralens can resolve map comprehensions with type conversions
 
 locals {
   # Transform input map to uppercase keys with numeric values

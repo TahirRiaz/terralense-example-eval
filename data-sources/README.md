@@ -65,7 +65,7 @@ output "subnet_details" {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve data source queries, filters, and references to data source attributes.
+**Expected Resolution**: Terralens should resolve data source queries, filters, and references to data source attributes.
 
 ---
 
@@ -94,7 +94,7 @@ output "tags" {
 }
 ```
 
-**Expected Resolution**: Terralense should handle file reading and JSON decoding (or recognize the pattern).
+**Expected Resolution**: Terralens should handle file reading and JSON decoding (or recognize the pattern).
 
 **Note**: This test requires a `data.json` file to exist in the same directory.
 
@@ -194,7 +194,7 @@ data "template_file" "init" {
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Recognize data source blocks
 - [ ] Parse data source arguments

@@ -28,7 +28,7 @@ all_combinations = {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve all nested iterations and produce the final flattened output structure.
+**Expected Resolution**: Terralens should resolve all nested iterations and produce the final flattened output structure.
 
 ---
 
@@ -58,7 +58,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should track count expansions and resolve references to count-based resources.
+**Expected Resolution**: Terralens should track count expansions and resolve references to count-based resources.
 
 ---
 
@@ -72,7 +72,7 @@ locals {
 - Count in lifecycle blocks
 - Referencing count resources in outputs
 
-**Expected Resolution**: Terralense should handle all count variations consistently.
+**Expected Resolution**: Terralens should handle all count variations consistently.
 
 ## Common Patterns
 
@@ -106,7 +106,7 @@ flatten([
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Resolve count values correctly
 - [ ] Track count.index references

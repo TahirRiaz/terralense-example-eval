@@ -1,10 +1,10 @@
-# Terralense Evaluation Test Suite
+# Terralens Evaluation Test Suite
 
-This repository contains a comprehensive collection of Terraform test cases designed to evaluate the capabilities of [Terralense](https://github.com/your-org/terralense), a Terraform analysis and linting tool.
+This repository contains a comprehensive collection of Terraform test cases designed to evaluate the capabilities of [Terralens](https://github.com/your-org/terralens), a Terraform analysis and linting tool.
 
 ## Overview
 
-Terralense is a static analysis tool for Terraform configurations. This test suite validates Terralense's ability to resolve and analyze various Terraform patterns, including:
+Terralens is a static analysis tool for Terraform configurations. This test suite validates Terralens's ability to resolve and analyze various Terraform patterns, including:
 
 - Complex variable and local value expressions
 - Dynamic blocks and meta-arguments (`count`, `for_each`)
@@ -18,7 +18,7 @@ Terralense is a static analysis tool for Terraform configurations. This test sui
 The test cases are organized into logical categories:
 
 ```
-terralense-example-eval/
+terralens-example-eval/
 ├── loops/                     # Loop and iteration constructs
 ├── dynamic-blocks/            # Dynamic block generation
 ├── splat-expressions/         # Splat operator usage
@@ -89,30 +89,30 @@ Examples of resolved/evaluated output for reference.
 
 ## Usage
 
-Each test file is an independent test case that can be analyzed by Terralense. The test cases are designed to:
+Each test file is an independent test case that can be analyzed by Terralens. The test cases are designed to:
 
-1. **Validate parsing** - Ensure Terralense can parse complex Terraform syntax
-2. **Test resolution** - Verify that Terralense correctly resolves variables, locals, and expressions
-3. **Check analysis** - Confirm that Terralense can analyze resource dependencies and data flow
+1. **Validate parsing** - Ensure Terralens can parse complex Terraform syntax
+2. **Test resolution** - Verify that Terralens correctly resolves variables, locals, and expressions
+3. **Check analysis** - Confirm that Terralens can analyze resource dependencies and data flow
 
 ### Running Tests
 
-To analyze a specific test case with Terralense:
+To analyze a specific test case with Terralens:
 
 ```bash
-terralense analyze loops/nested-for-loops-multi-region.tf
+terralens analyze loops/nested-for-loops-multi-region.tf
 ```
 
 To analyze an entire category:
 
 ```bash
-terralense analyze loops/
+terralens analyze loops/
 ```
 
 To analyze all test cases:
 
 ```bash
-terralense analyze .
+terralens analyze .
 ```
 
 ## Test File Naming Convention
@@ -130,7 +130,7 @@ Examples:
 
 ## Unique Naming Convention
 
-**Important:** All test files use a **unique prefix naming convention** to prevent naming conflicts when Terralense evaluates files together.
+**Important:** All test files use a **unique prefix naming convention** to prevent naming conflicts when Terralens evaluates files together.
 
 Each test file has a unique 2-4 letter prefix that is applied to ALL objects within that file:
 - Variables: `variable "prefix_name"`
@@ -155,7 +155,7 @@ resource "null_resource" "nfl_test_instances" { ... }
 - ✅ No naming conflicts across test files
 - ✅ All 27 tests can be evaluated together
 - ✅ Clear identification of which test each object belongs to
-- ✅ Terralense can correctly analyze all files simultaneously
+- ✅ Terralens can correctly analyze all files simultaneously
 
 ### Documentation
 - See [UNIQUE-NAMING.md](./UNIQUE-NAMING.md) for detailed information
@@ -210,7 +210,7 @@ These test cases use:
 
 ## Related Projects
 
-- [Terralense](https://github.com/your-org/terralense) - The main Terralense project
+- [Terralens](https://github.com/your-org/terralens) - The main Terralens project
 
 ## Support
 

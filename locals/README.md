@@ -45,7 +45,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should evaluate all basic operations and resolve local references.
+**Expected Resolution**: Terralens should evaluate all basic operations and resolve local references.
 
 ---
 
@@ -97,7 +97,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should handle complex transformations and encoding functions.
+**Expected Resolution**: Terralens should handle complex transformations and encoding functions.
 
 ---
 
@@ -112,7 +112,7 @@ locals {
 - Map merge operations
 - Concat function for lists
 
-**Expected Resolution**: Terralense should resolve basic string and lookup operations.
+**Expected Resolution**: Terralens should resolve basic string and lookup operations.
 
 ---
 
@@ -156,7 +156,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should filter data sources and resolve complex nested configurations.
+**Expected Resolution**: Terralens should filter data sources and resolve complex nested configurations.
 
 ---
 
@@ -206,7 +206,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve deeply nested structures and flattening operations.
+**Expected Resolution**: Terralens should resolve deeply nested structures and flattening operations.
 
 ---
 
@@ -286,7 +286,7 @@ locals {
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Resolve string interpolation
 - [ ] Evaluate numeric operations

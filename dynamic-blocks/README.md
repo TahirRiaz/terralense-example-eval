@@ -28,7 +28,7 @@ resource "azurerm_network_security_group" "example" {
 }
 ```
 
-**Expected Resolution**: Terralense should expand the dynamic block and resolve all `security_rule.value` references.
+**Expected Resolution**: Terralens should expand the dynamic block and resolve all `security_rule.value` references.
 
 ---
 
@@ -58,7 +58,7 @@ locals {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve the nested for expressions and track the transformed data structure.
+**Expected Resolution**: Terralens should resolve the nested for expressions and track the transformed data structure.
 
 ## Common Patterns
 
@@ -110,7 +110,7 @@ dynamic "rule_group" {
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Recognize dynamic block syntax
 - [ ] Resolve for_each expressions in dynamic blocks

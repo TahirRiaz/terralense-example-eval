@@ -1,6 +1,6 @@
-# Terralense Test Catalog
+# Terralens Test Catalog
 
-Complete catalog of all test cases in the Terralense evaluation test suite.
+Complete catalog of all test cases in the Terralens evaluation test suite.
 
 ## Table of Contents
 
@@ -696,7 +696,7 @@ Complete catalog of all test cases in the Terralense evaluation test suite.
 
 **Note**: This is expected output, not runnable Terraform
 
-**Key Use**: Reference for testing Terralense resolution output
+**Key Use**: Reference for testing Terralens resolution output
 
 ---
 
@@ -752,7 +752,7 @@ Approximately 3,500+ lines of Terraform across all test cases
 
 ## Recommended Test Order
 
-For implementing Terralense features, test in this order:
+For implementing Terralens features, test in this order:
 
 1. **Basic Variables** (simple-string-concatenation.tf)
 2. **Basic Locals** (basic-expressions-operations.tf)

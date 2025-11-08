@@ -49,7 +49,7 @@ resource "aws_route_table" "public" {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve all resource dependencies, for_each iterations, and dynamic blocks in a complete stack.
+**Expected Resolution**: Terralens should resolve all resource dependencies, for_each iterations, and dynamic blocks in a complete stack.
 
 ---
 
@@ -91,7 +91,7 @@ resource "azurerm_resource_group" "default2" {
 }
 ```
 
-**Expected Resolution**: Terralense should handle conditional count, dynamic blocks, and count-indexed resource references.
+**Expected Resolution**: Terralens should handle conditional count, dynamic blocks, and count-indexed resource references.
 
 ---
 
@@ -135,7 +135,7 @@ resource "azurerm_container_group" "app_instances" {
 }
 ```
 
-**Expected Resolution**: Terralense should resolve data sources, complex count expressions, and nested resource dependencies.
+**Expected Resolution**: Terralens should resolve data sources, complex count expressions, and nested resource dependencies.
 
 ---
 
@@ -165,7 +165,7 @@ resource "aws_subnet" "main" {
 }
 ```
 
-**Expected Resolution**: Terralense should flatten nested structures and create the final for_each map.
+**Expected Resolution**: Terralens should flatten nested structures and create the final for_each map.
 
 ---
 
@@ -252,7 +252,7 @@ resource "aws_instance" "server" {
 
 ## Testing Checklist
 
-When analyzing these files, Terralense should:
+When analyzing these files, Terralens should:
 
 - [ ] Resolve resource dependencies (implicit and explicit)
 - [ ] Track for_each on resources
