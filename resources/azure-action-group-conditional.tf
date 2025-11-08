@@ -33,7 +33,7 @@ variable "action_group_mapping" {
 variable "custom_tags" {
   type        = map(string)
   description = "Customer custom tags"
-  default     = {test = "test", test2 = "test2"}
+  default     = { test = "test", test2 = "test2" }
 }
 
 locals {
@@ -53,8 +53,8 @@ resource "azurerm_resource_group" "default" {
 }
 
 resource "azurerm_monitor_action_group" "secret_expiry" {
-  count = local.action_group_defined ? 1 : 0
-  id = "MyValue"
+  count               = local.action_group_defined ? 1 : 0
+  id                  = "MyValue"
   name                = local.action_group_config.action_group_name
   resource_group_name = azurerm_resource_group.default.name
   short_name          = substr(replace(local.action_group_config.action_group_name, "-", ""), 0, 12)
@@ -75,14 +75,14 @@ resource "azurerm_resource_group" "default2" {
   name     = "local.prefix2"
   location = "var.location2"
 
-  tags = {test = azurerm_monitor_action_group.secret_expiry[0].id}
+  tags = { test = azurerm_monitor_action_group.secret_expiry[0].id }
 }
 
 
 output "monitoring" {
   value = {
     action_group_default = {
-      id   = try(azurerm_monitor_action_group.secret_expiry[0].id, null)
+      id = try(azurerm_monitor_action_group.secret_expiry[0].id, null)
     }
   }
 }

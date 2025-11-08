@@ -90,9 +90,9 @@ locals {
     Environment = var.environment
     Project     = var.tags["Project"]
   }
-  
+
   instance_names = [for i in range(3) : format("server-%s-%02d", var.environment, i + 1)]
-  
+
   subnet_config = {
     for subnet in var.network_config.vpc.subnets :
     subnet.zone => {
@@ -127,8 +127,8 @@ output "network_summary" {
       "${rule.name}-${rule.port}" => rule
     }
     instance_metadata = {
-      names       = local.instance_names
-      base_tags   = local.base_tags
+      names        = local.instance_names
+      base_tags    = local.base_tags
       instance_ids = var.instances[*].id
     }
   }

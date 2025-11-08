@@ -55,7 +55,7 @@ variable "vpc_cidr" {
 }
 
 variable "subnet_cidrs" {
-  type = map(string)
+  type        = map(string)
   description = "Map of subnet names to CIDR blocks"
   default = {
     subnet_1 = "10.0.1.0/24"
@@ -142,7 +142,7 @@ data "aws_subnet" "selected" {
   for_each = var.subnet_cidrs
 
   vpc_id = data.aws_vpc.selected.id
-  
+
   filter {
     name   = "cidr-block"
     values = [each.value]
@@ -186,7 +186,7 @@ output "subnet_details" {
   value = {
     for k, subnet in data.aws_subnet.selected : k => {
       id                = subnet.id
-      cidr_block       = subnet.cidr_block
+      cidr_block        = subnet.cidr_block
       availability_zone = subnet.availability_zone
     }
   }

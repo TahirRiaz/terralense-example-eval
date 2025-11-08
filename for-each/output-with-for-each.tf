@@ -17,13 +17,13 @@ variable "instance_configs" {
 }
 
 resource "aws_instance" "servers" {
-  for_each = var.instance_configs
-  id = "simulated id"
-  private_ip = "10.0.0.2 simulated"
-  public_ip = "10.0.0.1 simulated"
-  ami           = "ami-12345678"  # Replace with valid AMI ID
+  for_each      = var.instance_configs
+  id            = "simulated id"
+  private_ip    = "10.0.0.2 simulated"
+  public_ip     = "10.0.0.1 simulated"
+  ami           = "ami-12345678" # Replace with valid AMI ID
   instance_type = each.value.instance_type
-  
+
   tags = {
     Name        = each.key
     Environment = each.value.environment
@@ -52,7 +52,7 @@ output "instance_details" {
 
 locals {
   instance_ips = output.instance_ips
-  test_value = output.instance_details
+  test_value   = output.instance_details
   dev_instances = {
     for name, ip in local.instance_ips :
     name => ip

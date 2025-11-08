@@ -1,6 +1,6 @@
 
 variable "environment" {
-  type    = "string"
+  type    = string
   default = "dev"
 }
 
@@ -20,7 +20,7 @@ variable "instance_sizes" {
 
 
 variable "region" {
-  type    = "string"
+  type    = string
   default = "us-west-2"
 }
 

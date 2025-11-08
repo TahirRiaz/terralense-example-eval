@@ -13,7 +13,7 @@ variable "secret_expiry_alert_config" {
   type = list(object({
     realm             = string
     action_group_name = string
-    email_recipients  = list(object({
+    email_recipients = list(object({
       name  = string
       email = string
     }))
@@ -24,14 +24,14 @@ variable "secret_expiry_alert_config" {
     {
       realm             = "default"
       action_group_name = "ag-default-kv-alerts"
-      email_recipients  = [
+      email_recipients = [
         { name = "Default Admin", email = "default-admin@example.com" }
       ]
     },
     {
       realm             = "base"
       action_group_name = "ag-base-kv-alerts"
-      email_recipients  = [
+      email_recipients = [
         { name = "Base Admin", email = "base-admin@example.com" }
       ]
     },
@@ -58,18 +58,14 @@ variable "secret_expiry_alert" {
   default = null
 
   validation {
-    condition = var.secret_expiry_alert == null || var.secret_expiry_alert.realm == null ? true : var.secret_expiry_alert.log_analytics_workspace_id != null
+    condition     = var.secret_expiry_alert == null || var.secret_expiry_alert.realm == null ? true : var.secret_expiry_alert.log_analytics_workspace_id != null
     error_message = "When a valid realm is specified, log_analytics_workspace_id must not be null."
   }
 }
 
 
 locals {
-  
-
-  selected_realm = var.secret_expiry_alert != null
-    ? var.secret_expiry_alert.realm
-    : null
+  selected_realm = var.secret_expiry_alert != null ? var.secret_expiry_alert.realm : null
 
   selected_realm_config = local.selected_realm != null ? (
     try(
@@ -86,7 +82,7 @@ variable "vpc_configs" {
     vpc_id = string
     subnets = list(object({
       cidr_block = string
-      zone = string
+      zone       = string
     }))
   }))
   default = {
@@ -95,11 +91,11 @@ variable "vpc_configs" {
       subnets = [
         {
           cidr_block = "10.0.1.0/24"
-          zone = "us-east-1a"
+          zone       = "us-east-1a"
         },
         {
           cidr_block = "10.0.2.0/24"
-          zone = "us-east-1b"
+          zone       = "us-east-1b"
         }
       ]
     }
@@ -110,9 +106,9 @@ locals {
   subnet_configs = {
     for vpc_key, vpc in var.vpc_configs : vpc_key => [
       for subnet in vpc.subnets : {
-        vpc_id = vpc.vpc_id
+        vpc_id     = vpc.vpc_id
         cidr_block = subnet.cidr_block
-        zone = subnet.zone
+        zone       = subnet.zone
       }
     ]
   }
@@ -123,7 +119,7 @@ resource "aws_subnet" "main" {
     for subnet in flatten([
       for vpc_key, subnets in var.subnet_configs : [
         for subnet in subnets : {
-          key = "${vpc_key}-${subnet.zone}"
+          key    = "${vpc_key}-${subnet.zone}"
           config = subnet
         }
       ]
@@ -133,7 +129,7 @@ resource "aws_subnet" "main" {
   vpc_id            = each.value.vpc_id
   cidr_block        = each.value.cidr_block
   availability_zone = each.value.zone
-  
+
   tags = {
     Name = each.key
   }

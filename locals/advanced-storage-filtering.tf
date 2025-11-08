@@ -10,14 +10,14 @@ variable "region" {
 
 variable "app_config" {
   type = object({
-    name        = string
-    port        = number
-    enable_ssl  = bool
+    name       = string
+    port       = number
+    enable_ssl = bool
   })
   default = {
-    name        = "myapp"
-    port        = 8080
-    enable_ssl  = true
+    name       = "myapp"
+    port       = 8080
+    enable_ssl = true
   }
 }
 
@@ -35,13 +35,13 @@ variable "instance_sizes" {
 locals {
   # Simple string concatenation
   app_name = "${var.app_config.name}-${var.environment}"
-  
+
   # Basic map lookup with default
   instance_type = lookup(var.instance_sizes, var.environment == "prod" ? "large" : "small", "t3.micro")
-  
+
   # Simple conditional
   is_production = var.environment == "prod"
-  
+
   # Basic map transformation
   tags = {
     Name        = local.app_name
@@ -49,7 +49,7 @@ locals {
     Region      = var.region
     Managed_By  = "terraform"
   }
-  
+
   # Simple list
   allowed_ports = concat(
     [var.app_config.port],
@@ -67,9 +67,9 @@ locals {
   }
 
   env_count = 2
-  
+
   env_names = [
-    for i in range(local.env_count) : 
+    for i in range(local.env_count) :
     "${local.app_name}-${var.environment}-${format("%02d", i + 1)}"
   ]
 
@@ -78,7 +78,7 @@ locals {
     for env in ["dev", "staging", "prod"] : env => {
       tier          = env == "prod" ? "Standard" : "Premium"
       replication   = env == "prod" ? "GRS" : "LRS"
-      min_tls      = env == "prod" ? "TLS1_2" : "TLS1_1"
+      min_tls       = env == "prod" ? "TLS1_2" : "TLS1_1"
       network_rules = env == "prod" ? ["10.0.0.0/24", "10.0.1.0/24"] : ["10.0.0.0/16"]
       containers    = env == "prod" ? ["logs", "data", "backup"] : ["logs", "data"]
       lifecycle_rules = {
@@ -98,10 +98,10 @@ locals {
   filtered_sizes = [
     for size in data.azurerm_virtual_machine_sizes.available.sizes : size
     if size.number_of_cores >= 2 &&
-       size.memory_in_mb >= 4096 &&
-       !startswith(size.name, "Standard_B")
+    size.memory_in_mb >= 4096 &&
+    !startswith(size.name, "Standard_B")
   ]
-  
+
   # Take only first 3 sizes that match our criteria
   selected_sizes = slice(local.filtered_sizes, 0, 3)
 
@@ -113,7 +113,7 @@ resource "aws_instance" "web" {
 
   ami           = "ami-0c55b159cbfafe1f0"
   instance_type = local.instance_type
-  
+
   tags = merge(local.tags, {
     Name = local.env_names[count.index]
   })
@@ -174,14 +174,14 @@ data "azurerm_virtual_machine_sizes" "available" {
 # Using For Expression with Data Source Results
 resource "azurerm_virtual_machine" "vm_cluster" {
   for_each = {
-    for idx, size in local.selected_sizes : 
+    for idx, size in local.selected_sizes :
     "${local.app_name}-vm-${idx}" => size
   }
 
   name                  = each.key
   location              = azurerm_resource_groupx.main.location
   resource_group_name   = azurerm_resource_group.main.name
-  vm_size              = each.value.name
+  vm_size               = each.value.name
   network_interface_ids = [azurerm_network_interface.main[each.key].id]
 
   dynamic "storage_data_disk" {
@@ -189,8 +189,8 @@ resource "azurerm_virtual_machine" "vm_cluster" {
     content {
       name              = "${each.key}-${storage_data_disk.value}"
       create_option     = "Empty"
-      disk_size_gb     = 10
-      lun              = storage_data_disk.key
+      disk_size_gb      = 10
+      lun               = storage_data_disk.key
       managed_disk_type = local.storage_config[var.environment].tier == "Premium" ? "Premium_LRS" : "Standard_LRS"
     }
   }

@@ -10,14 +10,14 @@ variable "region" {
 
 variable "app_config" {
   type = object({
-    name        = string
-    port        = number
-    enable_ssl  = bool
+    name       = string
+    port       = number
+    enable_ssl = bool
   })
   default = {
-    name        = "myapp"
-    port        = 8080
-    enable_ssl  = true
+    name       = "myapp"
+    port       = 8080
+    enable_ssl = true
   }
 }
 
@@ -33,13 +33,13 @@ variable "instance_sizes" {
 locals {
   # Simple string concatenation
   app_name = "${var.app_config.name}-${var.environment}"
-  
+
   # Basic map lookup with default
   instance_type = lookup(var.instance_sizes, var.environment == "prod" ? "large" : "small", "t3.micro")
-  
+
   # Simple conditional
   is_production = var.environment == "prod"
-  
+
   # Basic map transformation
   tags = {
     Name        = local.app_name
@@ -47,7 +47,7 @@ locals {
     Region      = var.region
     Managed_By  = "terraform"
   }
-  
+
   # Simple list
   allowed_ports = concat(
     [var.app_config.port],

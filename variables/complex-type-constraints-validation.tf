@@ -46,14 +46,14 @@ variable "service_config" {
   type = map(object({
     name = string
     config = object({
-      enabled     = bool
-      port_range  = list(number)
-      tags        = map(string)
-      components  = set(string)
+      enabled    = bool
+      port_range = list(number)
+      tags       = map(string)
+      components = set(string)
     })
     scaling = object({
-      min = number
-      max = number
+      min     = number
+      max     = number
       desired = number
       metrics = map(object({
         threshold = number
@@ -61,7 +61,7 @@ variable "service_config" {
       }))
     })
   }))
-  
+
   default = {
     primary = {
       name = "service-primary"
@@ -76,8 +76,8 @@ variable "service_config" {
         components = ["web", "api", "cache"]
       }
       scaling = {
-        min = 2
-        max = 10
+        min     = 2
+        max     = 10
         desired = 4
         metrics = {
           cpu = {
@@ -97,13 +97,13 @@ variable "service_config" {
 # List with complex type definitions
 variable "service_definitions" {
   type = list(object({
-    id          = string
-    name        = string
-    endpoints   = list(string)
-    weight      = number
-    properties  = map(string)
+    id         = string
+    name       = string
+    endpoints  = list(string)
+    weight     = number
+    properties = map(string)
   }))
-  
+
   default = [
     {
       id        = "svc-web-001"
@@ -113,7 +113,7 @@ variable "service_definitions" {
       properties = {
         "deployment_id" = "123456789"
         "priority"      = "1"
-        "tier"         = "frontend"
+        "tier"          = "frontend"
       }
     },
     {
@@ -124,7 +124,7 @@ variable "service_definitions" {
       properties = {
         "deployment_id" = "987654321"
         "priority"      = "2"
-        "tier"         = "backend"
+        "tier"          = "backend"
       }
     }
   ]
@@ -139,8 +139,8 @@ variable "cluster_config" {
         vcpu   = number
         memory = number
         storage = object({
-          type  = string
-          size  = number
+          type = string
+          size = number
         })
       })
       tags = map(string)
@@ -149,7 +149,7 @@ variable "cluster_config" {
       vpc_config = object({
         cidr_blocks = list(string)
         zones       = set(string)
-        peering    = map(bool)
+        peering     = map(bool)
       })
       security = map(list(string))
     })
@@ -163,13 +163,13 @@ variable "cluster_config" {
           vcpu   = 4
           memory = 8
           storage = {
-            type  = "ssd"
-            size  = 100
+            type = "ssd"
+            size = 100
           }
         }
         tags = {
-          "type"    = "compute"
-          "tier"    = "standard"
+          "type" = "compute"
+          "tier" = "standard"
         }
       },
       {
@@ -178,13 +178,13 @@ variable "cluster_config" {
           vcpu   = 8
           memory = 32
           storage = {
-            type  = "ssd"
-            size  = 200
+            type = "ssd"
+            size = 200
           }
         }
         tags = {
-          "type"    = "memory"
-          "tier"    = "premium"
+          "type" = "memory"
+          "tier" = "premium"
         }
       }
     ]
@@ -192,7 +192,7 @@ variable "cluster_config" {
       vpc_config = {
         cidr_blocks = ["10.0.0.0/16", "10.1.0.0/16"]
         zones       = ["us-west-2a", "us-west-2b", "us-west-2c"]
-        peering    = {
+        peering = {
           "prod"  = true
           "stage" = false
         }

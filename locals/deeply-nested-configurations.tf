@@ -10,14 +10,14 @@ variable "region" {
 
 variable "app_config" {
   type = object({
-    name        = string
-    port        = number
-    enable_ssl  = bool
+    name       = string
+    port       = number
+    enable_ssl = bool
   })
   default = {
-    name        = "myapp"
-    port        = 8080
-    enable_ssl  = true
+    name       = "myapp"
+    port       = 8080
+    enable_ssl = true
   }
 }
 
@@ -36,13 +36,13 @@ variable "instance_sizes" {
 locals {
   # Simple string concatenation
   app_name = "${var.app_config.name}-${var.environment}"
-  
+
   # Basic map lookup with default
   instance_type = lookup(var.instance_sizes, var.environment == "prod" ? "large" : "small", "t3.micro")
-  
+
   # Simple conditional
   is_production = var.environment == "prod"
-  
+
   # Basic map transformation
   tags = {
     Name        = local.app_name
@@ -50,7 +50,7 @@ locals {
     Region      = var.region
     Managed_By  = "terraform"
   }
-  
+
   # Simple list
   allowed_ports = concat(
     [var.app_config.port],
@@ -67,10 +67,10 @@ locals {
     }
   }
 
-env_count = 2
-  
+  env_count = 2
+
   env_names = [
-    for i in range(local.env_count) : 
+    for i in range(local.env_count) :
     "${local.app_name}-${var.environment}-${format("%02d", i + 1)}"
   ]
 
@@ -80,7 +80,7 @@ env_count = 2
     for env in ["dev", "staging", "prod"] : env => {
       tier          = env == "prod" ? "Standard" : "Premium"
       replication   = env == "prod" ? "GRS" : "LRS"
-      min_tls      = env == "prod" ? "TLS1_2" : "TLS1_1"
+      min_tls       = env == "prod" ? "TLS1_2" : "TLS1_1"
       network_rules = env == "prod" ? ["10.0.0.0/24", "10.0.1.0/24"] : ["10.0.0.0/16"]
       containers    = env == "prod" ? ["logs", "data", "backup"] : ["logs", "data"]
       lifecycle_rules = {
@@ -96,14 +96,14 @@ env_count = 2
     }
   }
 
-     # Filter VM sizes based on criteria and create a list
+  # Filter VM sizes based on criteria and create a list
   filtered_sizes = [
     for size in data.azurerm_virtual_machine_sizes.available.sizes : size
     if size.number_of_cores >= 2 &&
-       size.memory_in_mb >= 4096 &&
-       !startswith(size.name, "Standard_B")
+    size.memory_in_mb >= 4096 &&
+    !startswith(size.name, "Standard_B")
   ]
-  
+
   # Take only first 3 sizes that match our criteria
   selected_sizes = slice(local.filtered_sizes, 0, 3)
 
@@ -111,13 +111,13 @@ env_count = 2
 
 data "azurerm_virtual_machine_sizes" "available" {
   location = var.region
-  sizes = [1,2,3]
+  sizes    = [1, 2, 3]
 }
 
 data "azurerm_key_vault" "existing" {
   name                = "existing-key-vault-${var.environment}"
   resource_group_name = "security-${var.environment}"
-  id = "simulated value"
+  id                  = "simulated value"
   timeouts {
     read = "30m"
   }
@@ -127,9 +127,9 @@ data "azurerm_key_vault_secrets" "app_secrets" {
   key_vault_id = data.azurerm_key_vault.existing.id
 
   filter {
-    name_prefix = "APP_"
-    enabled     = true
-    expiration_date_before = timeadd(timestamp(), "8760h")  # 1 year from now
+    name_prefix            = "APP_"
+    enabled                = true
+    expiration_date_before = timeadd(timestamp(), "8760h") # 1 year from now
   }
 }
 
@@ -138,12 +138,12 @@ resource "azurerm_resource_group" "nested_instances" {
   for_each = var.instance_sizes
   name     = "${local.app_name}-${each.key}"
   location = var.region
-  
+
   tags = {
     Instance_Size = each.value
     Instance_Tier = each.key
   }
-  
+
   depends_on = [azurerm_resource_group.main]
 }
 
@@ -152,7 +152,7 @@ resource "azurerm_resource_group" "nested_instances" {
 resource "azurerm_resource_group" "main" {
   name     = local.app_name
   location = var.region
-  tags = local.tags
+  tags     = local.tags
 }
 
 
@@ -182,7 +182,7 @@ resource "azurerm_container_group" "app_instances" {
     Instance_Name   = local.env_names[count.index]
     # For expression to list all sibling instances
     Siblings = jsonencode([
-      for name in local.env_names : 
+      for name in local.env_names :
       name if name != local.env_names[count.index]
     ])
   })
@@ -196,7 +196,7 @@ resource "azurerm_storage_account" "advanced" {
   location                 = var.region
   account_tier             = lookup(local.storage_config[var.environment], "tier", "Standard")
   account_replication_type = lookup(local.storage_config[var.environment], "replication", "LRS")
-  min_tls_version         = lookup(local.storage_config[var.environment], "min_tls", "TLS1_2")
+  min_tls_version          = lookup(local.storage_config[var.environment], "min_tls", "TLS1_2")
 
   network_rules {
     default_action = "Deny"
@@ -224,8 +224,8 @@ resource "azurerm_storage_account" "advanced" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days    = local.storage_config[var.environment].lifecycle_rules.logs.days_to_cool_tier
-        delete_after_days          = local.storage_config[var.environment].lifecycle_rules.logs.days_to_delete
+        tier_to_cool_after_days = local.storage_config[var.environment].lifecycle_rules.logs.days_to_cool_tier
+        delete_after_days       = local.storage_config[var.environment].lifecycle_rules.logs.days_to_delete
       }
     }
   }
@@ -237,8 +237,8 @@ resource "azurerm_storage_account" "advanced" {
     }
     actions {
       base_blob {
-        tier_to_cool_after_days    = local.storage_config[var.environment].lifecycle_rules.data.days_to_cool_tier
-        delete_after_days          = local.storage_config[var.environment].lifecycle_rules.data.days_to_delete
+        tier_to_cool_after_days = local.storage_config[var.environment].lifecycle_rules.data.days_to_cool_tier
+        delete_after_days       = local.storage_config[var.environment].lifecycle_rules.data.days_to_delete
       }
     }
   }

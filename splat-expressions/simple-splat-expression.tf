@@ -4,13 +4,13 @@ terraform {
 
 # Define some test instances
 resource "aws_instance" "test_servers" {
-  count = 3
-  id = "newValue"
-  ami   = "ami-12345678"
+  count         = 3
+  id            = "newValue"
+  ami           = "ami-12345678"
   instance_type = "t2.micro"
 
   tags = {
-    Name = "server-${count.index}"
+    Name        = "server-${count.index}"
     Environment = "test"
   }
 }

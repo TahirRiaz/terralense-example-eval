@@ -4,7 +4,7 @@ variable "environments" {
     tier = string
     config = object({
       instance_count = number
-      multi_az = bool
+      multi_az       = bool
     })
   }))
   default = [
@@ -13,7 +13,7 @@ variable "environments" {
       tier = "basic"
       config = {
         instance_count = 1
-        multi_az = false
+        multi_az       = false
       }
     },
     {
@@ -21,7 +21,7 @@ variable "environments" {
       tier = "premium"
       config = {
         instance_count = 3
-        multi_az = true
+        multi_az       = true
       }
     }
   ]
@@ -29,15 +29,15 @@ variable "environments" {
 
 variable "service_config" {
   type = map(object({
-    enabled = bool
+    enabled  = bool
     settings = map(string)
-    ports = list(number)
+    ports    = list(number)
   }))
   default = {
     web = {
       enabled = true
       settings = {
-        "cache_ttl" = "3600"
+        "cache_ttl"  = "3600"
         "ssl_policy" = "TLS1.2"
       }
       ports = [80, 443]
@@ -45,7 +45,7 @@ variable "service_config" {
     api = {
       enabled = true
       settings = {
-        "timeout" = "30"
+        "timeout"    = "30"
         "rate_limit" = "100"
       }
       ports = [8080, 8443]
@@ -78,23 +78,23 @@ locals {
     for env in var.environments : env.name => {
       tier_config = {
         instance_type = env.tier == "basic" ? "t3.small" : "t3.large"
-        max_count    = env.config.instance_count * (env.tier == "basic" ? 1 : 2)
-        multi_az     = env.config.multi_az
+        max_count     = env.config.instance_count * (env.tier == "basic" ? 1 : 2)
+        multi_az      = env.config.multi_az
       }
       services = {
         for service_name, service in var.service_config :
         service_name => {
-          enabled     = service.enabled && (env.tier == "premium" || service_name == "web")
+          enabled = service.enabled && (env.tier == "premium" || service_name == "web")
           port_config = [
             for port in service.ports : {
-              number = port
+              number   = port
               protocol = port == 443 || port == 8443 ? "https" : "http"
               priority = port >= 443 ? "high" : "normal"
             }
           ]
           settings = merge(service.settings, {
             environment = env.name
-            tier       = env.tier
+            tier        = env.tier
           })
         }
       }
@@ -115,14 +115,14 @@ locals {
       for service_name, service in env_config.services : [
         for port_config in service.port_config : {
           deployment_key = "${env_name}-${service_name}-${port_config.number}"
-          environment   = env_name
-          service      = service_name
-          port        = port_config.number
-          protocol    = port_config.protocol
-          priority    = port_config.priority
-          enabled     = service.enabled
-          settings    = service.settings
-          tags        = env_config.tags
+          environment    = env_name
+          service        = service_name
+          port           = port_config.number
+          protocol       = port_config.protocol
+          priority       = port_config.priority
+          enabled        = service.enabled
+          settings       = service.settings
+          tags           = env_config.tags
         }
       ] if service.enabled
     ]
@@ -151,28 +151,28 @@ locals {
 # Complex nested object with dynamic validation rules
 variable "advanced_environments" {
   type = list(object({
-    name = string
-    tier = string
+    name     = string
+    tier     = string
     features = set(string)
     scaling = object({
-      min = number
-      max = number
+      min        = number
+      max        = number
       target_cpu = number
       custom_metrics = map(object({
-        name = string
-        threshold = number
+        name       = string
+        threshold  = number
         comparison = string
-        statistic = string
+        statistic  = string
       }))
     })
     storage = map(object({
-      type = string
-      size = number
-      iops = optional(number)
+      type       = string
+      size       = number
+      iops       = optional(number)
       throughput = optional(number)
       encryption = object({
-        enabled = bool
-        kms_key = optional(string)
+        enabled   = bool
+        kms_key   = optional(string)
         algorithm = optional(string, "AES256")
       })
     }))
@@ -180,52 +180,52 @@ variable "advanced_environments" {
       vpc_config = object({
         cidr_block = string
         subnets = map(object({
-          cidr = string
-          zone = string
+          cidr   = string
+          zone   = string
           public = bool
-          tags = map(string)
+          tags   = map(string)
         }))
       })
       security = object({
         allowed_cidrs = list(string)
         custom_rules = list(object({
           description = string
-          from_port = number
-          to_port = number
-          protocol = string
-          self = bool
+          from_port   = number
+          to_port     = number
+          protocol    = string
+          self        = bool
           cidr_blocks = optional(list(string), [])
         }))
       })
     })
   }))
-  
+
   default = [
     {
-      name = "complex-dev"
-      tier = "development"
+      name     = "complex-dev"
+      tier     = "development"
       features = ["logging", "monitoring", "backup"]
       scaling = {
-        min = 1
-        max = 3
+        min        = 1
+        max        = 3
         target_cpu = 70
         custom_metrics = {
           memory = {
-            name = "MemoryUtilization"
-            threshold = 80
+            name       = "MemoryUtilization"
+            threshold  = 80
             comparison = "GreaterThanThreshold"
-            statistic = "Average"
+            statistic  = "Average"
           }
         }
       }
       storage = {
         primary = {
-          type = "gp3"
-          size = 100
-          iops = 3000
+          type       = "gp3"
+          size       = 100
+          iops       = 3000
           throughput = 125
           encryption = {
-            enabled = true
+            enabled   = true
             algorithm = "AES256"
           }
         }
@@ -242,8 +242,8 @@ variable "advanced_environments" {
           cidr_block = "10.0.0.0/16"
           subnets = {
             public-1 = {
-              cidr = "10.0.1.0/24"
-              zone = "us-east-1a"
+              cidr   = "10.0.1.0/24"
+              zone   = "us-east-1a"
               public = true
               tags = {
                 Type = "Public"
@@ -251,8 +251,8 @@ variable "advanced_environments" {
               }
             }
             private-1 = {
-              cidr = "10.0.10.0/24"
-              zone = "us-east-1a"
+              cidr   = "10.0.10.0/24"
+              zone   = "us-east-1a"
               public = false
               tags = {
                 Type = "Private"
@@ -266,10 +266,10 @@ variable "advanced_environments" {
           custom_rules = [
             {
               description = "Allow internal traffic"
-              from_port = 0
-              to_port = 65535
-              protocol = "-1"
-              self = true
+              from_port   = 0
+              to_port     = 65535
+              protocol    = "-1"
+              self        = true
             }
           ]
         }
@@ -285,33 +285,33 @@ locals {
     for env in var.advanced_environments : env.name => {
       config = merge(
         {
-          tier = env.tier
+          tier     = env.tier
           features = env.features
         },
         # Conditional configuration based on tier
         env.tier == "development" ? {
           is_development = true
-          debug_enabled = true
+          debug_enabled  = true
           retention_days = 7
-        } : {
+          } : {
           is_development = false
-          debug_enabled = false
+          debug_enabled  = false
           retention_days = 30
         }
       )
-      
+
       # Transform storage configurations
       storage_configs = {
         for storage_key, storage in env.storage : storage_key => merge(
           storage,
           {
-            normalized_size = storage.size * (storage.type == "gp3" ? 1 : 0.8)
+            normalized_size  = storage.size * (storage.type == "gp3" ? 1 : 0.8)
             performance_tier = can(storage.iops) ? "high" : "standard"
-            backup_eligible = storage.size >= 100
+            backup_eligible  = storage.size >= 100
           }
         )
       }
-      
+
       # Process networking configuration
       network = {
         subnet_configs = {
@@ -319,22 +319,22 @@ locals {
             subnet,
             {
               fully_qualified_name = "${env.name}-${subnet_key}"
-              route_table = subnet.public ? "public" : "private"
-              nat_required = !subnet.public
+              route_table          = subnet.public ? "public" : "private"
+              nat_required         = !subnet.public
             }
           )
         }
-        
+
         security_rules = concat(
           env.networking.security.custom_rules,
           [
             # Add default security rules
             {
               description = "Default egress"
-              from_port = 0
-              to_port = 0
-              protocol = "-1"
-              self = false
+              from_port   = 0
+              to_port     = 0
+              protocol    = "-1"
+              self        = false
               cidr_blocks = ["0.0.0.0/0"]
             }
           ]
@@ -347,17 +347,17 @@ locals {
   flattened_subnets = flatten([
     for env_name, env in local.normalized_environments : [
       for subnet_key, subnet in env.network.subnet_configs : {
-        key = "${env_name}-${subnet_key}"
+        key         = "${env_name}-${subnet_key}"
         environment = env_name
         subnet_name = subnet_key
-        cidr = subnet.cidr
-        zone = subnet.zone
-        is_public = subnet.public
+        cidr        = subnet.cidr
+        zone        = subnet.zone
+        is_public   = subnet.public
         tags = merge(
           subnet.tags,
           {
             Environment = env_name
-            ManagedBy = "Terraform"
+            ManagedBy   = "Terraform"
             NetworkTier = subnet.public ? "Public" : "Private"
           }
         )
@@ -368,9 +368,9 @@ locals {
   # Generate conditional monitoring configurations
   monitoring_configs = {
     for env_name, env in local.normalized_environments : env_name => {
-      metrics_enabled = contains(env.config.features, "monitoring")
+      metrics_enabled  = contains(env.config.features, "monitoring")
       retention_period = env.config.retention_days
-      alert_endpoints = env.config.is_development ? ["dev-team@example.com"] : ["prod-team@example.com", "oncall@example.com"]
+      alert_endpoints  = env.config.is_development ? ["dev-team@example.com"] : ["prod-team@example.com", "oncall@example.com"]
       dashboard = {
         widgets = flatten([
           for storage_key, storage in env.storage_configs : [
@@ -399,18 +399,18 @@ resource "aws_vpc" "main" {
   for_each = local.normalized_environments
 
   cidr_block = each.value.network.vpc_config.cidr_block
-  
+
   tags = {
-    Name = "${each.key}-vpc"
+    Name        = "${each.key}-vpc"
     Environment = each.key
   }
 }
 
 resource "aws_ecs_cluster" "main" {
   for_each = local.normalized_environments
-  
+
   name = "${each.key}-cluster"
-  
+
   tags = {
     Environment = each.key
   }
@@ -424,10 +424,10 @@ resource "aws_ecs_service" "microservices" {
     if contains(["web", "api"], deployment.service)
   }
 
-  name            = each.value.deployment_key
-  cluster         = aws_ecs_cluster.main[each.value.environment].id
-  desired_count   = local.env_map[each.value.environment].config.instance_count
-  launch_type     = local.env_map[each.value.environment].tier == "premium" ? "FARGATE" : "EC2"
+  name          = each.value.deployment_key
+  cluster       = aws_ecs_cluster.main[each.value.environment].id
+  desired_count = local.env_map[each.value.environment].config.instance_count
+  launch_type   = local.env_map[each.value.environment].tier == "premium" ? "FARGATE" : "EC2"
 
   network_configuration {
     subnets = [
@@ -450,7 +450,7 @@ resource "aws_ecs_service" "microservices" {
   tags = merge(
     each.value.tags,
     local.monitoring_configs[each.value.environment].metrics_enabled ? {
-      "Monitoring" = "enabled"
+      "Monitoring"    = "enabled"
       "RetentionDays" = tostring(local.monitoring_configs[each.value.environment].retention_period)
     } : {}
   )
@@ -466,7 +466,7 @@ resource "aws_ebs_volume" "storage_volumes" {
     for env_name, env in local.normalized_environments : [
       for storage_key, storage in env.storage_configs : {
         "${env_name}-${storage_key}" = merge(storage, {
-          environment = env_name
+          environment  = env_name
           storage_name = storage_key
         })
       }
@@ -474,8 +474,8 @@ resource "aws_ebs_volume" "storage_volumes" {
   ])...)
 
   availability_zone = data.aws_availability_zones.available.names[0]
-  size             = each.value.normalized_size
-  type             = each.value.type
+  size              = each.value.normalized_size
+  type              = each.value.type
 
   dynamic "ebs_block_device" {
     for_each = each.value.performance_tier == "high" ? [1] : []
@@ -491,8 +491,8 @@ resource "aws_ebs_volume" "storage_volumes" {
   tags = merge(
     try(local.normalized_environments[each.value.environment].config.tags, {}),
     {
-      Name = "${each.value.environment}-${each.value.storage_name}"
-      BackupEligible = tostring(each.value.backup_eligible)
+      Name            = "${each.value.environment}-${each.value.storage_name}"
+      BackupEligible  = tostring(each.value.backup_eligible)
       PerformanceTier = each.value.performance_tier
     }
   )
@@ -517,12 +517,12 @@ resource "aws_security_group" "service_sg" {
   dynamic "ingress" {
     for_each = each.value.network.security_rules
     content {
-      description      = ingress.value.description
-      from_port       = ingress.value.from_port
-      to_port         = ingress.value.to_port
-      protocol        = ingress.value.protocol
-      self            = ingress.value.self
-      cidr_blocks     = length(try(ingress.value.cidr_blocks, [])) > 0 ? ingress.value.cidr_blocks : null
+      description = ingress.value.description
+      from_port   = ingress.value.from_port
+      to_port     = ingress.value.to_port
+      protocol    = ingress.value.protocol
+      self        = ingress.value.self
+      cidr_blocks = length(try(ingress.value.cidr_blocks, [])) > 0 ? ingress.value.cidr_blocks : null
     }
   }
 
@@ -547,11 +547,11 @@ resource "aws_security_group" "service_sg" {
 
   tags = merge(
     local.normalized_environments[each.key].config.tier == "development" ? {
-      Environment = "development"
+      Environment  = "development"
       DebugEnabled = "true"
-    } : {
+      } : {
       Environment = "production"
-      Compliance = "strict"
+      Compliance  = "strict"
     },
     {
       ManagedBy = "Terraform"

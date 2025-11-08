@@ -8,7 +8,7 @@ variable "environments" {
 variable "instance_types" {
   description = "Map of instance types per environment"
   type        = map(list(string))
-  default     = {
+  default = {
     dev     = ["t2.micro", "t2.small"]
     staging = ["t2.medium", "t2.large"]
     prod    = ["m5.large", "m5.xlarge"]
@@ -29,15 +29,15 @@ locals {
       for region in var.regions : region => [
         for instance_type in var.instance_types[env] : {
           environment = env
-          region     = region
-          instance   = instance_type
-          tag        = "${env}-${region}-${instance_type}"
+          region      = region
+          instance    = instance_type
+          tag         = "${env}-${region}-${instance_type}"
         }
       ]
     }
   }
 
-  
+
   # Flatten the nested structure for easier verification
   flattened_combinations = flatten([
     for env, regions in local.all_combinations :

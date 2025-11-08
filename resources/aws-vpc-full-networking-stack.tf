@@ -5,7 +5,7 @@ terraform {
       version = "~> 4.0"
     }
   }
- 
+
 }
 
 provider "aws" {
@@ -35,23 +35,23 @@ variable "default_tags" {
 
 variable "vpc_configs" {
   type = map(object({
-    vpc_id = string
-    cidr_block = string
+    vpc_id               = string
+    cidr_block           = string
     enable_dns_hostnames = optional(bool, true)
-    enable_dns_support = optional(bool, true)
+    enable_dns_support   = optional(bool, true)
     subnets = list(object({
       cidr_block = string
-      zone = string
-      type = string
-      tags = optional(map(string), {})
+      zone       = string
+      type       = string
+      tags       = optional(map(string), {})
       route_table_routes = optional(list(object({
         destination_cidr_block = string
-        gateway_id = optional(string)
-        nat_gateway_id = optional(string)
+        gateway_id             = optional(string)
+        nat_gateway_id         = optional(string)
       })), [])
     }))
     nat_gateways = optional(map(object({
-      subnet_key = string
+      subnet_key        = string
       eip_allocation_id = optional(string)
     })), {})
   }))
@@ -60,15 +60,15 @@ variable "vpc_configs" {
 
   default = {
     main = {
-      vpc_id = "vpc-12345"
-      cidr_block = "10.0.0.0/16"
+      vpc_id               = "vpc-12345"
+      cidr_block           = "10.0.0.0/16"
       enable_dns_hostnames = "each.value.enable_dns_hostnames"
       enable_dns_support   = "each.value.enable_dns_support"
       subnets = [
         {
           cidr_block = "10.0.1.0/24"
-          zone = "us-east-1a"
-          type = "public"
+          zone       = "us-east-1a"
+          type       = "public"
           tags = {
             Environment = "dev"
             Owner       = "platform-team"
@@ -77,14 +77,14 @@ variable "vpc_configs" {
           route_table_routes = [
             {
               destination_cidr_block = "0.0.0.0/0"
-              gateway_id = "igw-12345"
+              gateway_id             = "igw-12345"
             }
           ]
         },
         {
           cidr_block = "10.0.2.0/24"
-          zone = "us-east-1b"
-          type = "private"
+          zone       = "us-east-1b"
+          type       = "private"
           tags = {
             Environment = "dev"
             Owner       = "platform-team"
@@ -93,7 +93,7 @@ variable "vpc_configs" {
           route_table_routes = [
             {
               destination_cidr_block = "0.0.0.0/0"
-              nat_gateway_id = "nat-12345"
+              nat_gateway_id         = "nat-12345"
             }
           ]
         }
@@ -110,7 +110,7 @@ variable "vpc_configs" {
     condition = length([
       for vpc_key, vpc in var.vpc_configs :
       vpc if !can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$", vpc.cidr_block)) ||
-           !can(tonumber(split("/", vpc.cidr_block)[1]) >= 16 && tonumber(split("/", vpc.cidr_block)[1]) <= 28)
+      !can(tonumber(split("/", vpc.cidr_block)[1]) >= 16 && tonumber(split("/", vpc.cidr_block)[1]) <= 28)
     ]) == 0
     error_message = "All VPC CIDR blocks must be valid IPv4 CIDR notation with subnet mask between /16 and /28."
   }
@@ -133,12 +133,12 @@ locals {
         for subnet in vpc.subnets : {
           key = "${vpc_key}-${subnet.type}-${subnet.zone}"
           value = merge(subnet, {
-            vpc_id = vpc.vpc_id
+            vpc_id  = vpc.vpc_id
             vpc_key = vpc_key
           })
         }
       ]
-    ]): pair.key => pair.value
+    ]) : pair.key => pair.value
   }
 
   // Group subnets by type for route table association
@@ -162,12 +162,12 @@ locals {
         for nat_key, nat in vpc.nat_gateways : {
           key = "${vpc_key}-${nat_key}"
           value = merge(nat, {
-            vpc_id = vpc.vpc_id
+            vpc_id  = vpc.vpc_id
             vpc_key = vpc_key
           })
         }
       ]
-    ]): pair.key => pair.value
+    ]) : pair.key => pair.value
   }
 
 }

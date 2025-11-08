@@ -70,7 +70,7 @@ locals {
     for idx in range(var.instance_count) :
     "server-${var.environment}-${idx + 1}"
   ]
-  
+
   # Demonstrate count in dynamic block preparation
   port_configs = [
     for port in [80, 443, 8080] :
@@ -101,11 +101,10 @@ resource "null_resource" "with_dynamic_blocks" {
 
   triggers = {
     instance_name = "dynamic-instance-${count.index}"
-    
+
   }
-  
+
   lifecycle {
-    test =  contains([for cfg in local.port_configs : cfg.port], 443)
     precondition {
       condition     = contains([for cfg in local.port_configs : cfg.port], 443)
       error_message = "HTTPS port (443) must be included in port configurations"

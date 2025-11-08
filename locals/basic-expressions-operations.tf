@@ -29,7 +29,7 @@ variable "server_config" {
     instance_type = string
     ami_id        = string
     volume_size   = number
-    tags         = map(string)
+    tags          = map(string)
   })
   default = {
     instance_type = "t2.micro"
@@ -45,25 +45,25 @@ variable "server_config" {
 locals {
   # String interpolation
   server_name = "server-${var.environment}"
-  
+
   # Numeric operations
   total_storage = var.instance_count * var.server_config.volume_size
-  
+
   # Conditional expression
   environment_tag = var.environment == "production" ? "prod" : "non-prod"
-  
+
   # List operations
   first_az = var.availability_zones[0]
   az_count = length(var.availability_zones)
-  
+
   # Map operations
   all_tags = merge(var.tags, {
     Name = local.server_name
   })
-  
+
   # Complex expressions
   instance_tags = {
-    for idx in range(var.instance_count) : 
+    for idx in range(var.instance_count) :
     "instance-${idx}" => merge(local.all_tags, {
       InstanceNumber = tostring(idx + 1)
     })
